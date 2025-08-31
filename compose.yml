@@ -1,21 +1,49 @@
-version: "3.1"
-
 services:
-  comparative-genomics-service:
-    build: .
+  # Development service
+  comparative-genomics-service-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
     ports:
       - "8000:8000"
     environment:
       DB_USER: coge
       DB_PASSWORD: dummy_password
       DB_NAME: comparative_genomics
-      DB_HOST: comparative-genomics-service-db-1
+      DB_HOST: db
       DB_PORT: 5432
     depends_on:
       db:
         condition: service_healthy
+    # Removed problematic volume mounting for now
+    profiles:
+      - dev
+
+  # Production service
+  comparative-genomics-service-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "8001:8000"
+      
+    environment:
+      DB_USER: coge
+      DB_PASSWORD: dummy_password
+      DB_NAME: comparative_genomics
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - prod
+
+  # Database service (preserved from original)
   db:
-    image: postgres
+    image: postgres:15
     restart: unless-stopped
     ports:
       - "5432:5432"
@@ -31,11 +59,6 @@ services:
       retries: 5
     volumes:
       - db:/data/postgres
-    # networks:
-    #   - db
-# networks:
-#   db:
-#     driver: bridge
 
 volumes:
   db:
