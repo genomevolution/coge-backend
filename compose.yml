@@ -1,0 +1,41 @@
+version: "3.1"
+
+services:
+  comparative-genomics-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DB_USER: coge
+      DB_PASSWORD: dummy_password
+      DB_NAME: comparative_genomics
+      DB_HOST: comparative-genomics-service-db-1
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: coge
+      POSTGRES_PASSWORD: dummy_password
+      PGDATA: /data/postgres
+      POSTGRES_DB: comparative_genomics
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - db:/data/postgres
+    # networks:
+    #   - db
+# networks:
+#   db:
+#     driver: bridge
+
+volumes:
+  db:
