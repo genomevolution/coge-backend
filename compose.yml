@@ -16,11 +16,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    # Removed problematic volume mounting for now
     profiles:
       - dev
-
-  # Production service
   comparative-genomics-service-prod:
     build:
       context: .
@@ -40,8 +37,6 @@ services:
         condition: service_healthy
     profiles:
       - prod
-
-  # Database service (preserved from original)
   db:
     image: postgres:15
     restart: unless-stopped

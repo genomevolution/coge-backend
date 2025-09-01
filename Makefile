@@ -1,17 +1,31 @@
-activate_venv:
-	source .venv/bin/activate
+run-dev:
+	docker compose --profile dev up --build
 
-upgrade_pip:
-	python -m pip install --upgrade pip
+run-prod:
+	docker compose --profile prod up --build
+	
+stop-all:
+	docker compose down
 
-install_fast_api:
-	pip install "fastapi[standard]"
+logs-dev:
+	docker compose --profile dev logs -f
 
-install_postgres:
-	pip install psycopg2-binary
+logs-prod:
+	docker compose --profile prod logs -f
 
-run_server:
-	fastapi dev main.py
+clean:
+	docker compose down -v
+	docker system prune -f
 
-start_db:
-	docker compose up db
+# Database migration commands using dbmate
+create-migration:
+	dbmate new $(name)
+
+list-migrations:
+	dbmate --env-file dbmate.env --migrations-dir ./db/migrations status
+
+migrate-up:
+	dbmate --env-file dbmate.env --migrations-dir ./db/migrations up
+
+migrate-down:
+	dbmate --env-file dbmate.env --migrations-dir ./db/migrations down
