@@ -29,3 +29,6 @@ migrate-up:
 
 migrate-down:
 	dbmate --env-file dbmate.env --migrations-dir ./db/migrations down
+
+run-seeds:
+	PGPASSWORD=dummy_password psql -h localhost -U coge -d comparative_genomics -f ./db/seeds/seeds.sql
