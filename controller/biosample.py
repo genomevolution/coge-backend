@@ -7,10 +7,10 @@ class BiosampleController:
   def __init__(self, biosampleService: BiosampleService):
     self.biosampleService = biosampleService
 
-  def getBiosamplesList(self, next, previous):
+  def getBiosamplesList(self, next: str, previous: str):
     if next is not None and previous is not None:
       raise HTTPException(status_code=400, detail="Only send next or previous")
-    return PaginatedResponse(self.biosampleService.getBiosamplesList())
+    return PaginatedResponse(self.biosampleService.getBiosamplesList(next, previous), next, previous)
   
   def getBiosample(self, id:str):
     try:

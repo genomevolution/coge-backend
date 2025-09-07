@@ -1,13 +1,24 @@
 from repository.db import DB
 from model.biosample import Biosample
 from model.exceptions.entityNotFoundException import EntityNotFoundException
+from model.paginable import PAGINATION_LIMIT
 
 class BiosampleRepository:
   def __init__(self, db: DB):
     self.db = db
 
-  def getBiosamplesList(self) -> list[Biosample]:
-    rows = self.db.fetchTuples("SELECT * FROM biosample;")
+  def getBiosamplesList(self, next: str, prev: str) -> list[Biosample]:
+    query = "SELECT * FROM biosample LIMIT %s;"
+    params = (PAGINATION_LIMIT,)
+    if next is not None:
+      query = "SELECT * FROM biosample WHERE id > %s LIMIT %s;"
+      params = (next, PAGINATION_LIMIT)
+    elif prev is not None:
+      query = "SELECT * FROM biosample WHERE id < %s ORDER BY id DESC LIMIT %s;"
+      params = (prev, PAGINATION_LIMIT)
+    rows = self.db.fetchTuplesWithPlaceholders(query, params)
+    if prev is not None:
+      rows.reverse()
     # BIOSAMPLE
     # |0:id|1:name|2:user_fk|3:tax_id|4:metadata|5:created_at|6:species_name
     return [

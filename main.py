@@ -17,16 +17,6 @@ db = DB(DBConfig())
 genomeController = GenomeController(GenomeService(GenomeRepository(db)))
 biosampleController = BiosampleController(BiosampleService(BiosampleRepository(db)))
 
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
 @app.get("/genomes/")
 def getGenomesList(response: Response, next: str = None, previous: str = None):
     response.headers["Content-Type"] = "application/json"
