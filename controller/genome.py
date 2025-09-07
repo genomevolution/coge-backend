@@ -7,10 +7,10 @@ class GenomeController:
   def __init__(self, genomeService: GenomeService):
     self.genomeService = genomeService
 
-  def getGenomesList(self, next, previous):
-    if next is not None and previous is not None:
-      raise HTTPException(status_code=400, detail="Only send next or previous")
-    return PaginatedResponse(self.genomeService.getGenomesList())
+  def getGenomesList(self, prev: str, next: str):
+    if next is not None and prev is not None:
+      raise HTTPException(status_code=400, detail="Only send previous or next")
+    return PaginatedResponse(self.genomeService.getGenomesList(prev, next),  prev, next)
   
   def getGenome(self, id:str):
     try:

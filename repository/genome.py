@@ -2,13 +2,25 @@ from repository.db import DB
 from model.genome import Genome
 from model.biosample import Biosample
 from model.exceptions.entityNotFoundException import EntityNotFoundException
+from model.paginable import PAGINATION_LIMIT
 
 class GenomeRepository:
   def __init__(self, db: DB):
     self.db = db
 
-  def getGenomesList(self) -> list[Genome]:
-    rows = self.db.fetchTuples("SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id;")
+  def getGenomesList(self, prev: str, next: str) -> list[Genome]:
+    query = "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id LIMIT %s;"
+    params = (PAGINATION_LIMIT,)
+    if next is not None:
+      query = "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id WHERE genome.id > %s LIMIT %s;"
+      params = (next, PAGINATION_LIMIT)
+    elif prev is not None:
+      query = "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id WHERE genome.id < %s ORDER BY genome.id DESC LIMIT %s;"
+      params = (prev, PAGINATION_LIMIT)
+    rows = self.db.fetchTuplesWithPlaceholders(query, params)
+    if prev is not None:
+      rows.reverse()
+
     # GENOME
     # 0:id|1:biosample_fk|2:prefix|3:created_at|4:name|5:description|6:public|7:accesion_id
     # BIOSAMPLE

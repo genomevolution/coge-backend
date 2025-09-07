@@ -7,7 +7,7 @@ class BiosampleRepository:
   def __init__(self, db: DB):
     self.db = db
 
-  def getBiosamplesList(self, next: str, prev: str) -> list[Biosample]:
+  def getBiosamplesList(self, prev: str, next: str) -> list[Biosample]:
     query = "SELECT * FROM biosample LIMIT %s;"
     params = (PAGINATION_LIMIT,)
     if next is not None:

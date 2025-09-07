@@ -18,10 +18,10 @@ genomeController = GenomeController(GenomeService(GenomeRepository(db)))
 biosampleController = BiosampleController(BiosampleService(BiosampleRepository(db)))
 
 @app.get("/genomes/")
-def getGenomesList(response: Response, next: str = None, previous: str = None):
+def getGenomesList(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.getGenomesList(next, previous)
+    return genomeController.getGenomesList(previous, next)
 
 @app.get("/genomes/{genomeId}")
 def getGenome(response: Response, genomeId: str):
@@ -30,10 +30,10 @@ def getGenome(response: Response, genomeId: str):
     return genomeController.getGenome(genomeId)
 
 @app.get("/biosamples/")
-def getBiosamplesList(response: Response, next: str = None, previous: str = None):
+def getBiosamplesList(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return biosampleController.getBiosamplesList(next, previous)
+    return biosampleController.getBiosamplesList(previous, next)
 
 @app.get("/biosamples/{biosamplesId}")
 def getBiosample(response: Response, biosamplesId: str):
