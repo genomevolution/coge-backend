@@ -2,6 +2,7 @@ from repository.db import DB
 from model.biosample import Biosample
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.paginable import PAGINATION_LIMIT
+from model.genome import Genome
 
 class BiosampleRepository:
   def __init__(self, db: DB):
@@ -19,34 +20,23 @@ class BiosampleRepository:
     rows = self.db.fetchTuplesWithPlaceholders(query, params)
     if prev is not None:
       rows.reverse()
-    # BIOSAMPLE
-    # |0:id|1:name|2:user_fk|3:tax_id|4:metadata|5:created_at|6:species_name
     return [
-      Biosample(
-        r[0], # id
-        r[1], # name
-        r[3], # tax id
-        r[4], # meadata
-        r[5], # created at
-        r[6]) # species name
+      Biosample(result = r)
       for r in rows]
 
   def getBiosample(self, id:str) -> Biosample:
     rows = self.db.fetchTuplesWithPlaceholders(
-      "SELECT * FROM biosample WHERE id = %s;",
+      "SELECT * FROM biosample LEFT JOIN genome ON genome.biosample_fk = biosample.id WHERE biosample.id = %s;",
       (id,))
-    # BIOSAMPLE
-    # |0:id|1:name|2:user_fk|3:tax_id|4:metadata|5:created_at|6:species_name
     if len(rows) < 1:
       raise EntityNotFoundException("Biosample not found")
     r = rows[0]
-    return Biosample(
-      r[0], # id
-      r[1], # name
-      r[3], # tax id
-      r[4], # meadata
-      r[5], # created at
-      r[6]) # species name
+    biosample = Biosample(result = r)
+    genomes = [
+      Genome(result = r[7:])
+      for r in rows]
+    biosample.genomes = genomes
+    return biosample
   
   def searchBiosample(self, expression: str):
     pass
