@@ -2,7 +2,7 @@
 
 ## Run it
 
-First, start the DB
+First, start the DB and MinIO
 
 ```sh
 make start_db

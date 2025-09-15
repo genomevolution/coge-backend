@@ -1,11 +1,15 @@
 from typing import Union
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, UploadFile, File, HTTPException
+from fastapi.responses import StreamingResponse
 from repository.dbConfig import DBConfig
 from repository.db import DB
 
 from controller.genome import GenomeController
 from service.genome import GenomeService
 from repository.genome import GenomeRepository
+from service.minioService import MinIOService
+from service.genomeUploaderService import GenomeUploaderService
+from service.annotationUploaderService import AnnotationUploaderService
 
 from controller.biosample import BiosampleController
 from service.biosample import BiosampleService
@@ -14,7 +18,11 @@ from repository.biosample import BiosampleRepository
 app = FastAPI()
 
 db = DB(DBConfig())
-genomeController = GenomeController(GenomeService(GenomeRepository(db)))
+minioService = MinIOService()
+genomeUploaderService = GenomeUploaderService(minioService)
+annotationUploaderService = AnnotationUploaderService(minioService)
+genomeService = GenomeService(GenomeRepository(db), genomeUploaderService, annotationUploaderService)
+genomeController = GenomeController(genomeService, minioService)
 biosampleController = BiosampleController(BiosampleService(BiosampleRepository(db)))
 
 @app.get("/genomes/")
@@ -41,3 +49,39 @@ def getBiosample(response: Response, biosamplesId: str):
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return biosampleController.getBiosample(biosamplesId)
 
+# File upload endpoints
+@app.post("/biosamples/{biosampleId}/genomes/upload")
+def uploadGenomeFile(response: Response, biosampleId: str, file: UploadFile = File(...)):
+    """Upload a genome file (.fa, .fasta, .fna) for a specific biosample"""
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.uploadGenomeFile(biosampleId, file)
+
+@app.post("/biosamples/{biosampleId}/annotations/upload")
+def uploadAnnotationFile(response: Response, biosampleId: str, file: UploadFile = File(...)):
+    """Upload an annotation file (.gff3, .gff) for a specific biosample"""
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.uploadAnnotationFile(biosampleId, file)
+
+@app.get("/files/download")
+def downloadFile(response: Response, filePath: str):
+    """Download a file from MinIO using its path"""
+    try:
+        file_data = genomeController.downloadFile(filePath)
+        return StreamingResponse(
+            file_data,
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f"attachment; filename={filePath.split('/')[-1]}",
+                "Access-Control-Allow-Origin": "http://localhost:3000"
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download file: {str(e)}")
+
+@app.delete("/files/delete")
+def deleteFile(response: Response, filePath: str):
+    """Delete a file from MinIO using its path"""
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.deleteFile(filePath)
