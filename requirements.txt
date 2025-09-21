@@ -19,3 +19,6 @@ python-multipart==0.0.6
 
 # MinIO client for object storage
 minio==7.2.0
+
+# SQLModel for database models
+sqlmodel==0.0.14

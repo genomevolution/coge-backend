@@ -7,6 +7,7 @@ from repository.db import DB
 from controller.genome import GenomeController
 from service.genome import GenomeService
 from repository.genome import GenomeRepository
+from repository.file import FileRepository
 from service.minioService import MinIOService
 from service.genomeUploaderService import GenomeUploaderService
 from service.annotationUploaderService import AnnotationUploaderService
@@ -19,8 +20,9 @@ app = FastAPI()
 
 db = DB(DBConfig())
 minioService = MinIOService()
-genomeUploaderService = GenomeUploaderService(minioService)
-annotationUploaderService = AnnotationUploaderService(minioService)
+fileRepository = FileRepository(db)
+genomeUploaderService = GenomeUploaderService(minioService, fileRepository)
+annotationUploaderService = AnnotationUploaderService(minioService, fileRepository)
 genomeService = GenomeService(GenomeRepository(db), genomeUploaderService, annotationUploaderService)
 genomeController = GenomeController(genomeService, minioService)
 biosampleController = BiosampleController(BiosampleService(BiosampleRepository(db)))
@@ -50,17 +52,17 @@ def getBiosample(response: Response, biosamplesId: str):
     return biosampleController.getBiosample(biosamplesId)
 
 # File upload endpoints
-@app.post("/biosamples/{biosampleId}/genomes/upload")
-def uploadGenomeFile(response: Response, biosampleId: str, file: UploadFile = File(...)):
-    """Upload a genome file (.fa, .fasta, .fna) for a specific biosample"""
+@app.post("/biosamples/{biosampleId}/genomes/{genomeId}/upload")
+def uploadGenomeFile(response: Response, biosampleId: str, genomeId: str, file: UploadFile = File(...)):
+    """Upload a genome file (.fa, .fasta, .fna) for a specific genome"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadGenomeFile(biosampleId, file)
+    return genomeController.uploadGenomeFile(biosampleId, genomeId, file)
 
-@app.post("/biosamples/{biosampleId}/annotations/upload")
-def uploadAnnotationFile(response: Response, biosampleId: str, file: UploadFile = File(...)):
-    """Upload an annotation file (.gff3, .gff) for a specific biosample"""
+@app.post("/biosamples/{biosampleId}/genomes/{genomeId}/annotations/upload")
+def uploadAnnotationFile(response: Response, biosampleId: str, genomeId: str, file: UploadFile = File(...)):
+    """Upload an annotation file (.gff3, .gff) for a specific genome"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadAnnotationFile(biosampleId, file)
+    return genomeController.uploadAnnotationFile(biosampleId, genomeId, file)
 
 @app.get("/files/download")
 def downloadFile(response: Response, filePath: str):

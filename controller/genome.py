@@ -29,9 +29,9 @@ class GenomeController:
     except EntityNotFoundException:
       raise HTTPException(status_code=404, detail="Genome not found")
 
-  def uploadGenomeFile(self, biosampleId: str, file: UploadFile = File(...)) -> FileUploadResult:
+  def uploadGenomeFile(self, biosampleId: str, genomeId: str, file: UploadFile = File(...)) -> FileUploadResult:
     try:
-      return self.genomeService.upload_genome_file(biosampleId, file)
+      return self.genomeService.upload_genome_file(biosampleId, genomeId, file)
     except BucketCannotBeCreatedException as e:
       raise HTTPException(status_code=500, detail=f"Storage service unavailable: {str(e)}")
     except FileUploadException as e:
@@ -43,9 +43,9 @@ class GenomeController:
     except Exception as e:
       raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-  def uploadAnnotationFile(self, biosampleId: str, file: UploadFile = File(...)) -> FileUploadResult:
+  def uploadAnnotationFile(self, biosampleId: str, genomeId: str, file: UploadFile = File(...)) -> FileUploadResult:
     try:
-      return self.genomeService.upload_annotation_file(biosampleId, file)
+      return self.genomeService.upload_annotation_file(biosampleId, genomeId, file)
     except BucketCannotBeCreatedException as e:
       raise HTTPException(status_code=500, detail=f"Storage service unavailable: {str(e)}")
     except FileUploadException as e:
