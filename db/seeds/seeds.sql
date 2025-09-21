@@ -20,7 +20,6 @@ VALUES (
         'Biosample 1 specie'
     );
 
-
 INSERT INTO
     genome (
         id,
@@ -253,3 +252,42 @@ VALUES (
         'ACCESION_ID6'
     );
 
+INSERT INTO
+    annotations (
+        id,
+        fk_genome,
+        created_at,
+        name,
+        description,
+        public,
+        primary_annotation
+    )
+VALUES (
+        'ANNOTATION-UUID1',
+        'GENOME-UUID1',
+        '2025-09-21 19:35:05.238279+00',
+        'Annotation for test_annotation.gff3',
+        'Annotation file uploaded: test_annotation.gff3',
+        true,
+        false
+    );
+
+INSERT INTO
+    annotations (
+        id,
+        fk_genome,
+        created_at,
+        name,
+        description,
+        public,
+        primary_annotation
+    )
+VALUES (
+        'ANNOTATION-UUID2',
+        'GENOME-UUID1',
+        '2025-09-21 19:35:05.238279+00',
+        'Annotation for test_annotation.gff3',
+        'Annotation file uploaded: test_annotation.gff3',
+        true,
+        false
+    );

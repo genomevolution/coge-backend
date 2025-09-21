@@ -27,18 +27,6 @@ genomeService = GenomeService(GenomeRepository(db), genomeUploaderService, annot
 genomeController = GenomeController(genomeService, minioService)
 biosampleController = BiosampleController(BiosampleService(BiosampleRepository(db)))
 
-@app.get("/genomes/")
-def getGenomesList(response: Response, previous: str = None, next: str = None):
-    response.headers["Content-Type"] = "application/json"
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.getGenomesList(previous, next)
-
-@app.get("/genomes/{genomeId}")
-def getGenome(response: Response, genomeId: str):
-    response.headers["Content-Type"] = "application/json"
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.getGenome(genomeId)
-
 @app.get("/biosamples/")
 def getBiosamplesList(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"
@@ -50,6 +38,18 @@ def getBiosample(response: Response, biosamplesId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return biosampleController.getBiosample(biosamplesId)
+
+@app.get("/genomes/")
+def getGenomesList(response: Response, previous: str = None, next: str = None):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.getGenomesList(previous, next)
+
+@app.get("/genomes/{genomeId}")
+def getGenome(response: Response, genomeId: str):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.getGenome(genomeId)
 
 # File upload endpoints
 @app.post("/biosamples/{biosampleId}/genomes/{genomeId}/upload")

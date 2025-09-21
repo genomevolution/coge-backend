@@ -30,10 +30,13 @@ CREATE TABLE annotation_files (
     file_fk VARCHAR(36) NOT NULL REFERENCES files (id),
     annotation_fk VARCHAR(36) NOT NULL REFERENCES annotations (id),
     type VARCHAR(256) NOT NULL
-);          
+);
 
 -- migrate:down
 DROP TABLE IF EXISTS files;
+
 DROP TABLE IF EXISTS genome_files;
+
 DROP TABLE IF EXISTS annotations;
+
 DROP TABLE IF EXISTS annotation_files;

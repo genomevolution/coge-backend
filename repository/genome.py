@@ -1,5 +1,6 @@
 from repository.db import DB
 from model.genome import Genome
+from model.annotation import Annotation
 from model.biosample import Biosample
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.paginable import PAGINATION_LIMIT
@@ -28,12 +29,17 @@ class GenomeRepository:
   
   def getGenome(self, id:str) -> Genome:
     rows = self.db.fetchTuplesWithPlaceholders(
-      "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id WHERE genome.id = %s;",
+      "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id LEFT OUTER JOIN annotations ON genome.id = annotations.fk_genome WHERE genome.id = %s;",
       (id,))
     if len(rows) < 1:
       raise EntityNotFoundException("Genome not found")
-    r = rows[0]
-    return Genome(result = r)
+    r0 = rows[0]
+    genome = Genome(result = r0)
+    annotations = [
+      Annotation(result = r[15:])
+      for r in rows]
+    genome.annotations = annotations
+    return genome
 
   def searchGenomes(self, expression: str):
     pass

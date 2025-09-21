@@ -13,3 +13,14 @@ class Annotation(SQLModel, table=True):
     description: Optional[str] = Field(default=None, max_length=1024)
     public: Optional[bool] = Field(default=None)
     primary_annotation: Optional[bool] = Field(default=None)
+
+    def __init__(self, result: tuple):
+    # ANNOTATIONS
+    # |0:id|1:fk_genome|2:created_at|3:name|4:description|5:public|6:primary_annotation
+      self.id = result[0] # id
+      self.fk_genome = result[1] # fk_genome
+      self.created_at = result[2] # created_at
+      self.name = result[3] # name
+      self.description = result[4] # description
+      self.public = result[5] # public
+      self.primary_annotation = result[6] # primary_annotation
