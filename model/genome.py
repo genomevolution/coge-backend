@@ -2,7 +2,18 @@ from model.paginable import Paginable
 from model.biosample import Biosample
 
 class Genome(Paginable):
-  def __init__(self, id, biosample = None, prefix = None, createdAt = None, name = None, description = None, public = None, accesionId = None, annotations = None):
+  def __init__(
+      self,
+      id,
+      biosample = None,
+      prefix = None,
+      createdAt = None,
+      name = None,
+      description = None,
+      public = None,
+      accesionId = None,
+      annotations = None,
+      filePath = None):
     self.id = id
     self.biosample = biosample
     self.prefix = prefix
@@ -12,6 +23,7 @@ class Genome(Paginable):
     self.public = public
     self.accesionId = accesionId
     self.annotations = annotations
+    self.filePath = filePath
   
   def getId(self):
     return self.id
@@ -30,19 +42,8 @@ class Genome(Paginable):
     self.description = result[5] # description
     self.public = result[6] # public
     self.accesionId = result[7] # accesion id
+    self.filePath = None
     if len(result) > 8:
       self.biosample = Biosample(result[8:])
     else :
       self.biosample = None,
-
-
-  def buildSampleGenome(uuid: str):
-    return Genome(
-      uuid,
-      Biosample.buildSampleBiosample("Biosample"+uuid),
-      "prefix",
-      "createdAt",
-      "name",
-      "description",
-      True,
-      "accesionId")

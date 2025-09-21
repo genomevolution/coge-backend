@@ -22,12 +22,3 @@ class Biosample(Paginable):
 
   def getId(self):
     return self.id
-
-  def buildSampleBiosample(uuid: str):
-    return Biosample(
-      uuid,
-      "name",
-      "taxId",
-      "metadataJSON",
-      "createdAt",
-      "speciesName")

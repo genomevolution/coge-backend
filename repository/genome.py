@@ -35,10 +35,19 @@ class GenomeRepository:
       raise EntityNotFoundException("Genome not found")
     r0 = rows[0]
     genome = Genome(result = r0)
+
     annotations = [
       Annotation(result = r[15:])
       for r in rows]
     genome.annotations = annotations
+
+    genomeFileRows = self.db.fetchTuplesWithPlaceholders(
+      "SELECT files.path FROM genome_files JOIN files ON genome_files.file_fk = files.id WHERE genome_files.genome_fk = %s;",
+      (id,))
+    if len(genomeFileRows) > 0:
+      fileRow = genomeFileRows[0]
+      genome.filePath = fileRow[0]
+
     return genome
 
   def searchGenomes(self, expression: str):
