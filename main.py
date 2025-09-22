@@ -7,6 +7,9 @@ from repository.db import DB
 from controller.genome import GenomeController
 from service.genome import GenomeService
 from repository.genome import GenomeRepository
+
+from repository.annotation import AnnotationRepository
+
 from repository.file import FileRepository
 from service.minioService import MinIOService
 from service.genomeUploaderService import GenomeUploaderService
@@ -22,7 +25,7 @@ db = DB(DBConfig())
 minioService = MinIOService()
 fileRepository = FileRepository(db)
 genomeUploaderService = GenomeUploaderService(minioService, fileRepository)
-annotationUploaderService = AnnotationUploaderService(minioService, fileRepository)
+annotationUploaderService = AnnotationUploaderService(minioService, fileRepository, AnnotationRepository(db))
 genomeService = GenomeService(GenomeRepository(db), genomeUploaderService, annotationUploaderService)
 genomeController = GenomeController(genomeService, minioService)
 biosampleController = BiosampleController(BiosampleService(BiosampleRepository(db)))
@@ -58,11 +61,11 @@ def uploadGenomeFile(response: Response, biosampleId: str, genomeId: str, file: 
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.uploadGenomeFile(biosampleId, genomeId, file)
 
-@app.post("/biosamples/{biosampleId}/genomes/{genomeId}/annotations/upload")
-def uploadAnnotationFile(response: Response, biosampleId: str, genomeId: str, file: UploadFile = File(...)):
+@app.post("/genomes/{genomeId}/annotations/{annotationId}/upload")
+def uploadAnnotationFile(response: Response, genomeId: str, annotationId: str, file: UploadFile = File(...)):
     """Upload an annotation file (.gff3, .gff) for a specific genome"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadAnnotationFile(biosampleId, genomeId, file)
+    return genomeController.uploadAnnotationFile(genomeId, annotationId, file)
 
 @app.get("/files/download")
 def downloadFile(response: Response, filePath: str):

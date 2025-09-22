@@ -43,9 +43,11 @@ class GenomeController:
     except Exception as e:
       raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-  def uploadAnnotationFile(self, biosampleId: str, genomeId: str, file: UploadFile = File(...)) -> FileUploadResult:
+  def uploadAnnotationFile(self, genomeId: str, annotationId:str, file: UploadFile = File(...)) -> FileUploadResult:
     try:
-      return self.genomeService.upload_annotation_file(biosampleId, genomeId, file)
+      return self.genomeService.upload_annotation_file(genomeId, annotationId, file)
+    except EntityNotFoundException as e:
+      raise HTTPException(status_code=404, detail=f"Entity not found: {str(e)}")
     except BucketCannotBeCreatedException as e:
       raise HTTPException(status_code=500, detail=f"Storage service unavailable: {str(e)}")
     except FileUploadException as e:

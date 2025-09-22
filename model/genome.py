@@ -35,6 +35,8 @@ class Genome(Paginable):
     # |8:id|9:name|10:user_fk|11:tax_id|12:metadata|13:created_at|14:species_name
     # ANNOTATIONS
     # |15:id|16:fk_genome|17:created_at|18:name|19:description|20:public|21:primary_annotation
+    # FILES
+    # 22:annotation_file_path|23:genome_file_path
     self.id = result[0] # id
     self.prefix = result[2] # prefix
     self.createdAt = result[3] # created at
@@ -45,5 +47,7 @@ class Genome(Paginable):
     self.filePath = None
     if len(result) > 8:
       self.biosample = Biosample(result[8:])
+      if len(result) > 23 and result[23]:
+        self.filePath = result[23]
     else :
       self.biosample = None,
