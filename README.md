@@ -29,19 +29,21 @@ The API now supports file uploads for genomes and annotations using MinIO object
 ### Endpoints
 
 - `POST /biosamples/{biosampleId}/genomes/{genomeId}/upload` - Upload genome files (.fa, .fasta, .fna)
-- `POST /biosamples/{biosampleId}/genomes/{genomeId}/annotations/upload` - Upload annotation files (.gff3, .gff)
+- `POST genomes/{genomeId}/annotations/{annotationId}/upload` - Upload annotation files (.gff3, .gff)
 - `GET /files/download?filePath={path}` - Download files from MinIO
 - `DELETE /files/delete?filePath={path}` - Delete files from MinIO
 
 ### File Organization
 
 Files are organized in MinIO with the following structure:
+
 - `{biosampleId}/genomes/{filename}` - for genome files
-- `{biosampleId}/annotation/{filename}` - for annotation files
+- `genomes/{genomeId}/annotations/{annotationId}/{filename}` - for annotation files
 
 ### Database Integration
 
 When files are uploaded, the system automatically:
+
 - Creates a record in the `files` table with metadata
 - Links genome files to genomes via `genome_files` table
 - Creates annotation records and links them via `annotation_files` table
