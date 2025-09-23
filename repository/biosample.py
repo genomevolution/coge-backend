@@ -32,9 +32,11 @@ class BiosampleRepository:
       raise EntityNotFoundException("Biosample not found")
     r = rows[0]
     biosample = Biosample(result = r)
-    genomes = [
-      Genome(result = r[7:])
-      for r in rows]
+    genomes = []
+    for r in rows:
+      genome_data = r[7:]
+      if any(genome_data):
+        genomes.append(Genome(result = genome_data))
     biosample.genomes = genomes
     return biosample
   
