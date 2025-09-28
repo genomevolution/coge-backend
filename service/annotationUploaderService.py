@@ -16,7 +16,7 @@ class AnnotationUploaderService:
         self.minioService = minioService
         self.fileRepository = fileRepository
         self.annotationRepository = annotationRepository
-        self.allowed_extensions = ['.gff3', '.gff']
+        self.allowed_extensions = ['.gff3', '.gff', '.gz']
     
     def _validate_file_extension(self, filename: str) -> None:
         if not filename:
@@ -29,11 +29,8 @@ class AnnotationUploaderService:
                 self.allowed_extensions
             )
     
-    def _upload_annotation_file(self, genomeId: str, annotationId: str, file: UploadFile) -> FileUploadResult:
-        # Just call to check it exists. No need to assign, if not found, an exception is thrown
-        self.annotationRepository.getAnnotation(annotationId)
-        
-        file_path = f"genomes/{genomeId}/annotations/{annotationId}/{file.filename}"
+    def _upload_annotation_file(self, biosample_id: str, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
+        file_path = self.minioService.generate_file_path(biosample_id, "annotation", file.filename)
         file_data = file.file.read()
         file_size = len(file_data)
         file.file.seek(0)
@@ -49,15 +46,15 @@ class AnnotationUploaderService:
             "original_filename": file.filename,
             "file_size": file_size,
             "content_type": file.content_type or "text/plain",
-            "genome_id": genomeId,
-            "annotation_id": annotationId
+            "biosample_id": biosample_id,
+            "annotation_id": annotation_id
         }
 
         file_record = self.fileRepository.create_file(file_path, file_metadata)
         
         self.fileRepository.create_annotation_file_link(
             file_record.id,
-            annotationId,
+            annotation_id,
             "annotation"
         )
         
@@ -67,13 +64,14 @@ class AnnotationUploaderService:
             message="File uploaded successfully",
             file_path=file_path,
             file_url=file_url,
-            file_type="annotation"
+            file_type="annotation",
+            biosample_id=biosample_id
         )
     
-    def upload_annotation_file(self, genomeId: str, annotationId, file: UploadFile) -> FileUploadResult:
+    def upload_annotation_file(self, biosample_id: str, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
         self._validate_file_extension(file.filename)
         try:
-            return self._upload_annotation_file(genomeId, annotationId, file)
+            return self._upload_annotation_file(biosample_id, genome_id, annotation_id, file)
         except (FileUploadException, FileUrlGenerationException, EntityNotFoundException) as e:
             raise e
         except Exception as e:

@@ -78,9 +78,11 @@ WHERE g.id = %s;""",
     r0 = rows[0]
     genome = Genome(result = r0)
 
-    annotations = [
-      AnnotationEntity(result = r[15:])
-      for r in rows]
+    annotations = []
+    for r in rows:
+      annotation_data = r[15:]
+      if any(annotation_data):
+        annotations.append(AnnotationEntity(result = annotation_data))
     genome.annotations = annotations
 
     return genome

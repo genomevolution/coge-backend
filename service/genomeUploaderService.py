@@ -13,7 +13,7 @@ class GenomeUploaderService:
     def __init__(self, minioService: MinIOService, fileRepository: FileRepository):
         self.minioService = minioService
         self.fileRepository = fileRepository
-        self.allowed_extensions = ['.fa', '.fasta', '.fna']
+        self.allowed_extensions = ['.fa', '.fasta', '.fna', '.gz']
     
     def _validate_file_extension(self, filename: str) -> None:
         if not filename:

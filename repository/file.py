@@ -70,37 +70,27 @@ class FileRepository:
         return genome_file
     
     def create_annotation(self, genome_id: str, name: str = None, description: str = None, 
-                         public: bool = None, primary_annotation: bool = None) -> Annotation:
-        """Create a new annotation record"""
+                         public: bool = None, primary_annotation: bool = None) -> str:
+        """Create a new annotation record and return the annotation ID"""
         annotation_id = str(uuid.uuid4())
         current_time = datetime.utcnow()
-        
-        annotation = Annotation(
-            id=annotation_id,
-            fk_genome=genome_id,
-            created_at=current_time,
-            name=name,
-            description=description,
-            public=public,
-            primary_annotation=primary_annotation
-        )
         
         query = """
         INSERT INTO annotations (id, fk_genome, created_at, name, description, public, primary_annotation)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         params = (
-            annotation.id,
-            annotation.fk_genome,
-            annotation.created_at,
-            annotation.name,
-            annotation.description,
-            annotation.public,
-            annotation.primary_annotation
+            annotation_id,
+            genome_id,
+            current_time,
+            name,
+            description,
+            public,
+            primary_annotation
         )
         
         self.db.executeWithPlaceholders(query, params)
-        return annotation
+        return annotation_id
     
     def create_annotation_file_link(self, file_id: str, annotation_id: str, file_type: str) -> AnnotationFile:
         """Create a link between a file and an annotation"""

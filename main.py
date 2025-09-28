@@ -61,11 +61,11 @@ def uploadGenomeFile(response: Response, biosampleId: str, genomeId: str, file: 
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.uploadGenomeFile(biosampleId, genomeId, file)
 
-@app.post("/genomes/{genomeId}/annotations/{annotationId}/upload")
-def uploadAnnotationFile(response: Response, genomeId: str, annotationId: str, file: UploadFile = File(...)):
-    """Upload an annotation file (.gff3, .gff) for a specific genome"""
+@app.post("/biosamples/{biosampleId}/genomes/{genomeId}/annotations/{annotationId}/upload")
+def uploadAnnotationFile(response: Response, biosampleId: str, genomeId: str, annotationId: str, file: UploadFile = File(...)):
+    """Upload an annotation file (.gff3, .gff) for a specific genome and annotation"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadAnnotationFile(genomeId, annotationId, file)
+    return genomeController.uploadAnnotationFile(biosampleId, genomeId, annotationId, file)
 
 @app.get("/files/download")
 def downloadFile(response: Response, filePath: str):

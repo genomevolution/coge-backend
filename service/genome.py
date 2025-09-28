@@ -20,5 +20,5 @@ class GenomeService:
   def upload_genome_file(self, biosample_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
     return self.genomeUploaderService.upload_genome_file(biosample_id, genome_id, file)
   
-  def upload_annotation_file(self, genomeId: str, annotationId, file: UploadFile) -> dict:
-    return self.annotationUploaderService.upload_annotation_file(genomeId, annotationId, file)
+  def upload_annotation_file(self, biosample_id: str, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
+    return self.annotationUploaderService.upload_annotation_file(biosample_id, genome_id, annotation_id, file)
