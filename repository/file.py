@@ -136,19 +136,16 @@ class FileRepository:
     
     def delete_file(self, file_id: str) -> bool:
         """Delete a file record and its links"""
-        # Delete genome file links
         self.db.executeWithPlaceholders(
             "DELETE FROM genome_files WHERE file_fk = %s",
             (file_id,)
         )
         
-        # Delete annotation file links
         self.db.executeWithPlaceholders(
             "DELETE FROM annotation_files WHERE file_fk = %s",
             (file_id,)
         )
         
-        # Delete the file record
         self.db.executeWithPlaceholders(
             "DELETE FROM files WHERE id = %s",
             (file_id,)
