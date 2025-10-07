@@ -54,19 +54,28 @@ class GenomeRepository:
           a.description     AS annotation_description,
           a.public          AS annotation_public,
           a.primary_annotation AS annotation_primary_annotation,
+          af_file.path        AS annotation_file_path,
 
-          gf_file.path      AS genome_file_path,
-          af_file.path      AS annotation_file_path
+          gf_paths.fasta_path AS genome_fasta_path,
+          gf_paths.fai_path   AS genome_fai_path,
+          gf_paths.gzi_path   AS genome_gzi_path
+          
+
         FROM genome g
         JOIN biosample b
           ON b.id = g.biosample_fk
         LEFT JOIN annotations a
           ON a.fk_genome = g.id
-        LEFT JOIN genome_files gf
-          ON gf.genome_fk = g.id
-        AND gf.type = 'FASTA'
-        LEFT JOIN files gf_file
-          ON gf_file.id = gf.file_fk
+        LEFT JOIN (
+          SELECT
+            gf.genome_fk,
+            MAX(CASE WHEN gf.type = 'FASTA' THEN f.path END) AS fasta_path,
+            MAX(CASE WHEN gf.type = 'FAI'   THEN f.path END) AS fai_path,
+            MAX(CASE WHEN gf.type = 'GZI'   THEN f.path END) AS gzi_path
+          FROM genome_files gf
+          JOIN files f ON f.id = gf.file_fk
+          GROUP BY gf.genome_fk
+        ) gf_paths ON gf_paths.genome_fk = g.id
         LEFT JOIN annotation_files af
           ON af.annotation_fk = a.id
         LEFT JOIN files af_file
@@ -87,6 +96,3 @@ class GenomeRepository:
     genome.annotations = annotations
 
     return genome
-
-  def searchGenomes(self, expression: str):
-    pass

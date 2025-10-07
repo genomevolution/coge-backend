@@ -13,7 +13,7 @@ class GenomeUploaderService:
     def __init__(self, minioService: MinIOService, fileRepository: FileRepository):
         self.minioService = minioService
         self.fileRepository = fileRepository
-        self.allowed_extensions = ['.fa', '.fasta', '.fna', '.gz']
+        self.allowed_extensions = ['.fa', '.fasta', '.fna', '.gz', '.gzi', '.fai']
     
     def _validate_file_extension(self, filename: str) -> None:
         if not filename:
@@ -54,7 +54,7 @@ class GenomeUploaderService:
         self.fileRepository.create_genome_file_link(
             file_record.id, 
             genome_id, 
-            "genome"
+            "FASTA"
         )
         
         file_url = self.minioService.get_file_url(file_path)

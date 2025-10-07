@@ -22,23 +22,8 @@ source local.env
 make run_server
 ```
 
-## File Upload API
-
-The API now supports file uploads for genomes and annotations using MinIO object storage.
-
-### Endpoints
-
-- `POST /biosamples/{biosampleId}/genomes/{genomeId}/upload` - Upload genome files (.fa, .fasta, .fna)
-- `POST genomes/{genomeId}/annotations/{annotationId}/upload` - Upload annotation files (.gff3, .gff)
-- `GET /files/download?filePath={path}` - Download files from MinIO
-- `DELETE /files/delete?filePath={path}` - Delete files from MinIO
-
-### File Organization
-
-Files are organized in MinIO with the following structure:
-
-- `{biosampleId}/genomes/{filename}` - for genome files
-- `genomes/{genomeId}/annotations/{annotationId}/{filename}` - for annotation files
+curl --location --request POST 'http://localhost:8000/biosamples/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/f67ff84a-fc90-41df-9e16-4282d7568647/upload' \
+--form 'file=@"UN0010_assignedKin.fa.gz.fai"'
 
 ### Database Integration
 
