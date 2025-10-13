@@ -42,7 +42,7 @@ class GenomeUploaderService:
         )
         
         # Create file record in database
-        file_metadata = {
+        file_metadata = {   
             "original_filename": file.filename,
             "file_size": file_size,
             "content_type": file.content_type or "application/octet-stream",
