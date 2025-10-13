@@ -22,8 +22,8 @@ source local.env
 make run_server
 ```
 
-curl --location --request POST 'http://localhost:8000/biosamples/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/f67ff84a-fc90-41df-9e16-4282d7568647/upload' \
---form 'file=@"UN0010_assignedKin.fa.gz.fai"'
+curl --location --request POST 'http://localhost:8000/biosamples/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/c06eb1b3-a80b-4e9e-aa55-e92ae4c0a0bc/upload' \
+--form 'file=@"LL0772_assignedKin.fa.gz.gzi"'
 
 ### Database Integration
 

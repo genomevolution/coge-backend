@@ -90,7 +90,7 @@ class GenomeRepository:
 
     annotations = []
     for r in rows:
-      annotation_data = r[15:]
+      annotation_data = r[15:23]
       if any(annotation_data):
         annotations.append(AnnotationEntity(result = annotation_data))
     genome.annotations = annotations
