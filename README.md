@@ -22,11 +22,10 @@ source local.env
 make run_server
 ```
 
-curl --location --request POST 'http://localhost:8000/biosamples/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/c06eb1b3-a80b-4e9e-aa55-e92ae4c0a0bc/annotation/annotations/3f822d4c-e3bc-4df4-9ea9-993fc451f215/upload' \
+curl --location --request POST 'http://localhost:8000/organisms/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/c06eb1b3-a80b-4e9e-aa55-e92ae4c0a0bc/annotation/annotations/3f822d4c-e3bc-4df4-9ea9-993fc451f215/upload' \
 --form 'file=@"LL0772_assignedKin.fa.gz.gzi"'
 
-
-curl --location --request POST 'http://localhost:8000/biosamples/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/f67ff84a-fc90-41df-9e16-4282d7568647/annotations/6de7d105-c66e-474e-85dd-86105a6968ef/upload' \
+curl --location --request POST 'http://localhost:8000/organisms/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/f67ff84a-fc90-41df-9e16-4282d7568647/annotations/6de7d105-c66e-474e-85dd-86105a6968ef/upload' \
 --form 'file=@"ILL0772.sorted.gff3.gz"'
 
 ### Database Integration

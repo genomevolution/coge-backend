@@ -26,8 +26,8 @@ class GenomeUploaderService:
                 self.allowed_extensions
             )
     
-    def _upload_genome_file(self, biosample_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
-        file_path = self.minioService.generate_file_path(biosample_id, "genome", file.filename)
+    def _upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
+        file_path = self.minioService.generate_file_path(organism_id, "genome", file.filename)
         
         file_data = file.file.read()
         file_size = len(file_data)
@@ -46,7 +46,7 @@ class GenomeUploaderService:
             "original_filename": file.filename,
             "file_size": file_size,
             "content_type": file.content_type or "application/octet-stream",
-            "biosample_id": biosample_id
+            "organism_id": organism_id
         }
         file_record = self.fileRepository.create_file(file_path, file_metadata)
         
@@ -63,15 +63,15 @@ class GenomeUploaderService:
             message="File uploaded successfully",
             file_path=file_path,
             file_url=file_url,
-            biosample_id=biosample_id,
+            organism_id=organism_id,
             file_type="genome"
         )
     
-    def upload_genome_file(self, biosample_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
+    def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
         self._validate_file_extension(file.filename)
         
         try:
-            return self._upload_genome_file(biosample_id, genome_id, file)
+            return self._upload_genome_file(organism_id, genome_id, file)
         except (FileUploadException, FileUrlGenerationException) as e:
             raise e
         except Exception as e:

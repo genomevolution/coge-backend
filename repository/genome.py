@@ -1,7 +1,6 @@
 from repository.db import DB
 from model.genome import Genome
 from model.annotationEntity import AnnotationEntity
-from model.biosample import Biosample
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.paginable import PAGINATION_LIMIT
 
@@ -10,13 +9,13 @@ class GenomeRepository:
     self.db = db
 
   def getGenomesList(self, prev: str, next: str) -> list[Genome]:
-    query = "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id LIMIT %s;"
+    query = "SELECT * FROM genome JOIN organism ON genome.organism_fk = organism.id LIMIT %s;"
     params = (PAGINATION_LIMIT,)
     if next is not None:
-      query = "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id WHERE genome.id > %s LIMIT %s;"
+      query = "SELECT * FROM genome JOIN organism ON genome.organism_fk = organism.id WHERE genome.id > %s LIMIT %s;"
       params = (next, PAGINATION_LIMIT)
     elif prev is not None:
-      query = "SELECT * FROM genome JOIN biosample ON genome.biosample_fk = biosample.id WHERE genome.id < %s ORDER BY genome.id DESC LIMIT %s;"
+      query = "SELECT * FROM genome JOIN organism ON genome.organism_fk = organism.id WHERE genome.id < %s ORDER BY genome.id DESC LIMIT %s;"
       params = (prev, PAGINATION_LIMIT)
     rows = self.db.fetchTuplesWithPlaceholders(query, params)
     if prev is not None:
@@ -31,7 +30,7 @@ class GenomeRepository:
     rows = self.db.fetchTuplesWithPlaceholders(
       """SELECT
           g.id              AS genome_id,
-          g.biosample_fk    AS genome_biosample_fk,
+          g.organism_fk    AS genome_organism_fk,
           g.prefix          AS genome_prefix,
           g.created_at      AS genome_created_at,
           g.name            AS genome_name,
@@ -39,13 +38,13 @@ class GenomeRepository:
           g.public          AS genome_public,
           g.accesion_id     AS genome_accesion_id,
 
-          b.id              AS biosample_id,
-          b.name            AS biosample_name,
-          b.user_fk         AS biosample_user_fk,
-          b.tax_id          AS biosample_tax_id,
-          b.metadata        AS biosample_metadata,
-          b.created_at      AS biosample_created_at,
-          b.species_name    AS biosample_species_name,
+          b.id              AS organism_id,
+          b.name            AS organism_name,
+          b.user_fk         AS organism_user_fk,
+          b.tax_id          AS organism_tax_id,
+          b.metadata        AS organism_metadata,
+          b.created_at      AS organism_created_at,
+          b.species_name    AS organism_species_name,
 
           a.id              AS annotation_id,
           a.fk_genome       AS annotation_fk_genome,
@@ -62,8 +61,8 @@ class GenomeRepository:
           
 
         FROM genome g
-        JOIN biosample b
-          ON b.id = g.biosample_fk
+        JOIN organism b
+          ON b.id = g.organism_fk
         LEFT JOIN annotations a
           ON a.fk_genome = g.id
         LEFT JOIN (

@@ -11,12 +11,12 @@ package "FastAPI Application" {
     
     package "Controllers Layer" {
         [Genome Controller] as GenomeCtrl
-        [Biosample Controller] as BiosampleCtrl
+        [Organism Controller] as OrganismCtrl
     }
     
     package "Services Layer" {
         [Genome Service] as GenomeSvc
-        [Biosample Service] as BiosampleSvc
+        [Organism Service] as OrganismSvc
         [Genome Uploader Service] as GenomeUploadSvc
         [Annotation Uploader Service] as AnnotationUploadSvc
         [MinIO Service] as MinIOSvc #lightblue
@@ -25,14 +25,14 @@ package "FastAPI Application" {
     
     package "Repository Layer" {
         [Genome Repository] as GenomeRepo
-        [Biosample Repository] as BiosampleRepo
+        [Organism Repository] as OrganismRepo
         [File Repository] as FileRepo
         [Database Connection] as DBConn
     }
     
     package "Models" {
         [Genome Model] as GenomeModel
-        [Biosample Model] as BiosampleModel
+        [Organism Model] as OrganismModel
         [File Model] as FileModel
         [Annotation Model] as AnnotationModel
         [Exception Models] as ExceptionModels
@@ -45,29 +45,29 @@ DB ||--|| DBConn : "Database Connection"
 
 ' Internal connections
 FastAPI --> GenomeCtrl : "HTTP Endpoints"
-FastAPI --> BiosampleCtrl : "HTTP Endpoints"
+FastAPI --> OrganismCtrl : "HTTP Endpoints"
 
 GenomeCtrl --> GenomeSvc : "Business Logic"
-BiosampleCtrl --> BiosampleSvc : "Business Logic"
+OrganismCtrl --> OrganismSvc : "Business Logic"
 
 GenomeSvc --> GenomeRepo : "Data Access"
 GenomeSvc --> GenomeUploadSvc : "File Upload"
 GenomeSvc --> AnnotationUploadSvc : "Annotation Upload"
-BiosampleSvc --> BiosampleRepo : "Data Access"
+OrganismSvc --> OrganismRepo : "Data Access"
 
 GenomeUploadSvc --> MinIOSvc : "File Storage"
 AnnotationUploadSvc --> MinIOSvc : "File Storage"
 GenomeCtrl --> MinIOSvc : "Direct File Ops"
 
 GenomeRepo --> DBConn : "Database Queries"
-BiosampleRepo --> DBConn : "Database Queries"
+OrganismRepo --> DBConn : "Database Queries"
 FileRepo --> DBConn : "File Metadata"
 
 DBConn --> DB : "SQL Operations"
 
 ' Model relationships
 GenomeModel --> GenomeRepo
-BiosampleModel --> BiosampleRepo
+OrganismModel --> OrganismRepo
 FileModel --> FileRepo
 AnnotationModel --> FileRepo
 
@@ -108,8 +108,8 @@ note bottom of FastAPI
   **Key Endpoints:**
   • GET /genomes/ - List genomes
   • GET /genomes/{id} - Get genome details
-  • POST /biosamples/{id}/genomes/{id}/upload - Upload genome
-  • POST /biosamples/{id}/genomes/{id}/annotations/upload - Upload annotation
+  • POST /organisms/{id}/genomes/{id}/upload - Upload genome
+  • POST /organisms/{id}/genomes/{id}/annotations/upload - Upload annotation
   • GET /files/download - Download file
   • DELETE /files/delete - Delete file
 end note

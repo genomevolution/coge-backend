@@ -1,12 +1,12 @@
 from model.genomeVisualizationFile import GenomeVisualizationFile
 from model.paginable import Paginable
-from model.biosample import Biosample
+from model.organism import Organism
 
 class Genome(Paginable):
   def __init__(
       self,
       id,
-      biosample = None,
+      organism = None,
       prefix = None,
       createdAt = None,
       name = None,
@@ -16,7 +16,7 @@ class Genome(Paginable):
       annotations = None,
       fileFaPath = None):
     self.id = id
-    self.biosample = biosample
+    self.organism = organism
     self.prefix = prefix
     self.createdAt = createdAt
     self.name = name
@@ -39,9 +39,9 @@ class Genome(Paginable):
     self.public = result[6] # public
     self.accesionId = result[7] # accesion id
     if len(result) > 8:
-      self.biosample = Biosample(result[8:])
+      self.organism = Organism(result[8:])
       if len(result) > 23 and result[23]:
         self.filePath = result[23]
         self.genomeVisualizationFiles = GenomeVisualizationFile(result[23:])
     else :
-      self.biosample = None,
+      self.organism = None,

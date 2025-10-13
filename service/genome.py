@@ -17,8 +17,8 @@ class GenomeService:
   def getGenome(self, id:str):
     return self.genomeRepository.getGenome(id)
   
-  def upload_genome_file(self, biosample_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
-    return self.genomeUploaderService.upload_genome_file(biosample_id, genome_id, file)
+  def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
+    return self.genomeUploaderService.upload_genome_file(organism_id, genome_id, file)
   
-  def upload_annotation_file(self, biosample_id: str, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
-    return self.annotationUploaderService.upload_annotation_file(biosample_id, genome_id, annotation_id, file)
+  def upload_annotation_file(self, organism_id: str, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
+    return self.annotationUploaderService.upload_annotation_file(organism_id, genome_id, annotation_id, file)

@@ -4,7 +4,7 @@ from .annotation import Annotation
 from .annotationFile import AnnotationFile
 from .fileUploadResult import FileUploadResult
 from .genome import Genome
-from .biosample import Biosample
+from .organism import Organism
 from .paginable import Paginable
 from .paginatedResponse import PaginatedResponse
 from .paginationMetadata import PaginationMetadata

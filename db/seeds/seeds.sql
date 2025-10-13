@@ -1,7 +1,7 @@
 INSERT INTO users (id) VALUES ('USER-UUID');
 
 INSERT INTO
-    biosample (
+    organism (
         id,
         name,
         user_fk,
@@ -11,19 +11,19 @@ INSERT INTO
         species_name
     )
 VALUES (
-        'BIOSAMPLE-UUID1',
-        'Biosample 1',
+        'ORGANISM-UUID1',
+        'Organism 1',
         'USER-UUID',
         'TAX-UUID',
         '{"hello":"world"}',
         '2016-01-25T10:10:10.555555',
-        'Biosample 1 specie'
+        'Organism 1 specie'
     );
 
 INSERT INTO
     genome (
         id,
-        biosample_fk,
+        organism_fk,
         prefix,
         created_at,
         name,
@@ -33,7 +33,7 @@ INSERT INTO
     )
 VALUES (
         'GENOME-UUID1',
-        'BIOSAMPLE-UUID1',
+        'ORGANISM-UUID1',
         'GENOME-PREFIX',
         '2016-01-25T10:10:10.555555',
         'Genome 1',
@@ -43,7 +43,7 @@ VALUES (
     );
 
 INSERT INTO
-    biosample (
+    organism (
         id,
         name,
         user_fk,
@@ -53,17 +53,17 @@ INSERT INTO
         species_name
     )
 VALUES (
-        'BIOSAMPLE-UUID2',
-        'Biosample 2',
+        'ORGANISM-UUID2',
+        'Organism 2',
         'USER-UUID',
         'TAX-UUID2',
         '{"hello":"world"}',
         '2016-01-25T10:10:10.555555',
-        'Biosample 2 specie'
+        'Organism 2 specie'
     );
 
 INSERT INTO
-    biosample (
+    organism (
         id,
         name,
         user_fk,
@@ -73,17 +73,17 @@ INSERT INTO
         species_name
     )
 VALUES (
-        'BIOSAMPLE-UUID3',
-        'Biosample 3',
+        'ORGANISM-UUID3',
+        'Organism 3',
         'USER-UUID',
         'TAX-UUID3',
         '{"hello":"world"}',
         '2016-01-25T10:10:10.555555',
-        'Biosample 3 specie'
+        'Organism 3 specie'
     );
 
 INSERT INTO
-    biosample (
+    organism (
         id,
         name,
         user_fk,
@@ -93,17 +93,17 @@ INSERT INTO
         species_name
     )
 VALUES (
-        'BIOSAMPLE-UUID4',
-        'Biosample 4',
+        'ORGANISM-UUID4',
+        'Organism 4',
         'USER-UUID',
         'TAX-UUID4',
         '{"hello":"world"}',
         '2016-01-25T10:10:10.555555',
-        'Biosample 4 specie'
+        'Organism 4 specie'
     );
 
 INSERT INTO
-    biosample (
+    organism (
         id,
         name,
         user_fk,
@@ -113,17 +113,17 @@ INSERT INTO
         species_name
     )
 VALUES (
-        'BIOSAMPLE-UUID5',
-        'Biosample 5',
+        'ORGANISM-UUID5',
+        'Organism 5',
         'USER-UUID',
         'TAX-UUID5',
         '{"hello":"world"}',
         '2016-01-25T10:10:10.555555',
-        'Biosample 5 specie'
+        'Organism 5 specie'
     );
 
 INSERT INTO
-    biosample (
+    organism (
         id,
         name,
         user_fk,
@@ -133,19 +133,19 @@ INSERT INTO
         species_name
     )
 VALUES (
-        'BIOSAMPLE-UUID6',
-        'Biosample 6',
+        'ORGANISM-UUID6',
+        'Organism 6',
         'USER-UUID',
         'TAX-UUID6',
         '{"hello":"world"}',
         '2016-01-25T10:10:10.555555',
-        'Biosample 6 specie'
+        'Organism 6 specie'
     );
 
 INSERT INTO
     genome (
         id,
-        biosample_fk,
+        organism_fk,
         prefix,
         created_at,
         name,
@@ -155,7 +155,7 @@ INSERT INTO
     )
 VALUES (
         'GENOME-UUID2',
-        'BIOSAMPLE-UUID2',
+        'ORGANISM-UUID2',
         'GENOME-PREFIX',
         '2016-01-25T10:10:10.555555',
         'Genome 2',
@@ -167,7 +167,7 @@ VALUES (
 INSERT INTO
     genome (
         id,
-        biosample_fk,
+        organism_fk,
         prefix,
         created_at,
         name,
@@ -177,7 +177,7 @@ INSERT INTO
     )
 VALUES (
         'GENOME-UUID3',
-        'BIOSAMPLE-UUID3',
+        'ORGANISM-UUID3',
         'GENOME-PREFIX',
         '2016-01-25T10:10:10.555555',
         'Genome 3',
@@ -189,7 +189,7 @@ VALUES (
 INSERT INTO
     genome (
         id,
-        biosample_fk,
+        organism_fk,
         prefix,
         created_at,
         name,
@@ -199,7 +199,7 @@ INSERT INTO
     )
 VALUES (
         'GENOME-UUID4',
-        'BIOSAMPLE-UUID4',
+        'ORGANISM-UUID4',
         'GENOME-PREFIX',
         '2016-01-25T10:10:10.555555',
         'Genome 4',
@@ -211,7 +211,7 @@ VALUES (
 INSERT INTO
     genome (
         id,
-        biosample_fk,
+        organism_fk,
         prefix,
         created_at,
         name,
@@ -221,7 +221,7 @@ INSERT INTO
     )
 VALUES (
         'GENOME-UUID5',
-        'BIOSAMPLE-UUID5',
+        'ORGANISM-UUID5',
         'GENOME-PREFIX',
         '2016-01-25T10:10:10.555555',
         'Genome 5',
@@ -233,7 +233,7 @@ VALUES (
 INSERT INTO
     genome (
         id,
-        biosample_fk,
+        organism_fk,
         prefix,
         created_at,
         name,
@@ -243,7 +243,7 @@ INSERT INTO
     )
 VALUES (
         'GENOME-UUID6',
-        'BIOSAMPLE-UUID6',
+        'ORGANISM-UUID6',
         'GENOME-PREFIX',
         '2016-01-25T10:10:10.555555',
         'Genome 6',

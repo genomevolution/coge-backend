@@ -15,9 +15,9 @@ from service.minioService import MinIOService
 from service.genomeUploaderService import GenomeUploaderService
 from service.annotationUploaderService import AnnotationUploaderService
 
-from controller.biosample import BiosampleController
-from service.biosample import BiosampleService
-from repository.biosample import BiosampleRepository
+from controller.organism import OrganismController
+from service.organism import OrganismService
+from repository.organism import OrganismRepository
 
 app = FastAPI()
 
@@ -28,19 +28,19 @@ genomeUploaderService = GenomeUploaderService(minioService, fileRepository)
 annotationUploaderService = AnnotationUploaderService(minioService, fileRepository, AnnotationRepository(db))
 genomeService = GenomeService(GenomeRepository(db), genomeUploaderService, annotationUploaderService)
 genomeController = GenomeController(genomeService, minioService)
-biosampleController = BiosampleController(BiosampleService(BiosampleRepository(db)))
+organismController = OrganismController(OrganismService(OrganismRepository(db)))
 
-@app.get("/biosamples/")
-def getBiosamplesList(response: Response, previous: str = None, next: str = None):
+@app.get("/organisms/")
+def getOrganismList(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return biosampleController.getBiosamplesList(previous, next)
+    return organismController.getOrganismsList(previous, next)
 
-@app.get("/biosamples/{biosamplesId}")
-def getBiosample(response: Response, biosamplesId: str):
+@app.get("/organisms/{organismId}")
+def getOrganism(response: Response, organismId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return biosampleController.getBiosample(biosamplesId)
+    return organismController.getOrganism(organismId)
 
 @app.get("/genomes/")
 def getGenomesList(response: Response, previous: str = None, next: str = None):
@@ -55,17 +55,17 @@ def getGenome(response: Response, genomeId: str):
     return genomeController.getGenome(genomeId)
 
 # File upload endpoints
-@app.post("/biosamples/{biosampleId}/genomes/{genomeId}/upload")
-def uploadGenomeFile(response: Response, biosampleId: str, genomeId: str, file: UploadFile = File(...)):
+@app.post("/organisms/{organismId}/genomes/{genomeId}/upload")
+def uploadGenomeFile(response: Response, organismId: str, genomeId: str, file: UploadFile = File(...)):
     """Upload a genome file (.fa, .fasta, .fna) for a specific genome"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadGenomeFile(biosampleId, genomeId, file)
+    return genomeController.uploadGenomeFile(organismId, genomeId, file)
 
-@app.post("/biosamples/{biosampleId}/genomes/{genomeId}/annotations/{annotationId}/upload")
-def uploadAnnotationFile(response: Response, biosampleId: str, genomeId: str, annotationId: str, file: UploadFile = File(...)):
+@app.post("/organisms/{organismId}/genomes/{genomeId}/annotations/{annotationId}/upload")
+def uploadAnnotationFile(response: Response, organismId: str, genomeId: str, annotationId: str, file: UploadFile = File(...)):
     """Upload an annotation file (.gff3, .gff) for a specific genome and annotation"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadAnnotationFile(biosampleId, genomeId, annotationId, file)
+    return genomeController.uploadAnnotationFile(organismId, genomeId, annotationId, file)
 
 @app.get("/files/download")
 def downloadFile(response: Response, filePath: str):

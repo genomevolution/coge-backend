@@ -58,11 +58,11 @@ class MinIOService:
         except S3Error as e:
             raise FileDeleteException(file_name, str(e))
 
-    def generate_file_path(self, biosample_id: str, file_type: str, original_filename: str) -> str:
+    def generate_file_path(self, organism_id: str, file_type: str, original_filename: str) -> str:
         if file_type == "genome":
-            return f"{biosample_id}/genomes/{original_filename}"
+            return f"{organism_id}/genomes/{original_filename}"
         elif file_type == "annotation":
-            return f"{biosample_id}/annotation/{original_filename}"
+            return f"{organism_id}/annotation/{original_filename}"
         else:
             raise InvalidFileTypeException(file_type, ["genome", "annotation"])
 

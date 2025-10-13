@@ -1,7 +1,7 @@
 from repository.genome import GenomeRepository
-from repository.biosample import BiosampleRepository
+from repository.organism import OrganismRepository
 
 class SearchService:
-  def __init__(self, genomeRepository: GenomeRepository, biosampleRepository: BiosampleRepository):
+  def __init__(self, genomeRepository: GenomeRepository, organismRepository: OrganismRepository):
     self.genomeRepository = genomeRepository
-    self.biosampleRpository = biosampleRepository
+    self.organismRpository = organismRepository

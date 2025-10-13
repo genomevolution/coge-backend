@@ -1,6 +1,6 @@
 from model.paginable import Paginable
 
-class Biosample(Paginable):
+class Organism(Paginable):
   def __init__(self, id, name = None, taxId = None, metadata = None, createdAt = None, speciesName = None, genomes = None):
     self.id = id
     self.name = name
@@ -11,7 +11,7 @@ class Biosample(Paginable):
     self.genomes = genomes
 
   def __init__(self, result: tuple):
-    # BIOSAMPLE
+    # ORGANISM
     # |0:id|1:name|2:user_fk|3:tax_id|4:metadata|5:created_at|6:species_name
       self.id = result[0] # id
       self.name = result[1] # name

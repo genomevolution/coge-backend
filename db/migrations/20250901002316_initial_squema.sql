@@ -1,7 +1,7 @@
 -- migrate:up
 CREATE TABLE users ( id VARCHAR(36) NOT NULL PRIMARY KEY );
 
-CREATE TABLE biosample (
+CREATE TABLE organism (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
     user_fk VARCHAR(36) REFERENCES users (id),
@@ -13,7 +13,7 @@ CREATE TABLE biosample (
 
 CREATE TABLE genome (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    biosample_fk VARCHAR(36) NOT NULL REFERENCES biosample (id),
+    organism_fk VARCHAR(36) NOT NULL REFERENCES organism (id),
     prefix VARCHAR(36) NOT NULL,
     created_at TIMESTAMPTZ,
     name VARCHAR(256),
@@ -25,6 +25,6 @@ CREATE TABLE genome (
 -- migrate:down
 DROP TABLE IF EXISTS genome;
 
-DROP TABLE IF EXISTS biosample;
+DROP TABLE IF EXISTS organism;
 
 DROP TABLE IF EXISTS users;
