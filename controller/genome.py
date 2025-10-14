@@ -43,22 +43,6 @@ class GenomeController:
     except Exception as e:
       raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-  def uploadAnnotationFile(self, organismId: str, genomeId: str, annotationId: str, file: UploadFile = File(...)) -> FileUploadResult:
-    try:
-      return self.genomeService.upload_annotation_file(organismId, genomeId, annotationId, file)
-    except EntityNotFoundException as e:
-      raise HTTPException(status_code=404, detail=f"Entity not found: {str(e)}")
-    except BucketCannotBeCreatedException as e:
-      raise HTTPException(status_code=500, detail=f"Storage service unavailable: {str(e)}")
-    except FileUploadException as e:
-      raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
-    except InvalidFileTypeException as e:
-      raise HTTPException(status_code=400, detail=str(e))
-    except FileUrlGenerationException as e:
-      raise HTTPException(status_code=500, detail=f"Failed to generate file URL: {str(e)}")
-    except Exception as e:
-      raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-
   def downloadFile(self, filePath: str):
     try:
       return self.minioService.download_file(filePath)

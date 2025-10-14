@@ -13,7 +13,8 @@ from repository.annotation import AnnotationRepository
 from repository.file import FileRepository
 from service.minioService import MinIOService
 from service.genomeUploaderService import GenomeUploaderService
-from service.annotationUploaderService import AnnotationUploaderService
+from service.annotation import AnnotationService
+from controller.annotation import AnnotationController
 
 from controller.organism import OrganismController
 from service.organism import OrganismService
@@ -25,10 +26,11 @@ db = DB(DBConfig())
 minioService = MinIOService()
 fileRepository = FileRepository(db)
 genomeUploaderService = GenomeUploaderService(minioService, fileRepository)
-annotationUploaderService = AnnotationUploaderService(minioService, fileRepository, AnnotationRepository(db))
-genomeService = GenomeService(GenomeRepository(db), genomeUploaderService, annotationUploaderService)
+annotationService = AnnotationService(minioService, fileRepository, AnnotationRepository(db))
+genomeService = GenomeService(GenomeRepository(db), genomeUploaderService)
 genomeController = GenomeController(genomeService, minioService)
 organismController = OrganismController(OrganismService(OrganismRepository(db)))
+annotationController = AnnotationController(annotationService)
 
 @app.get("/organisms/")
 def getOrganismList(response: Response, previous: str = None, next: str = None):
@@ -61,11 +63,11 @@ def uploadGenomeFile(response: Response, organismId: str, genomeId: str, file: U
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.uploadGenomeFile(organismId, genomeId, file)
 
-@app.post("/organisms/{organismId}/genomes/{genomeId}/annotations/{annotationId}/upload")
-def uploadAnnotationFile(response: Response, organismId: str, genomeId: str, annotationId: str, file: UploadFile = File(...)):
+@app.post("/genomes/{genomeId}/annotations/{annotationId}/upload")
+def uploadAnnotationFile(response: Response, genomeId: str, annotationId: str, file: UploadFile = File(...)):
     """Upload an annotation file (.gff3, .gff) for a specific genome and annotation"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadAnnotationFile(organismId, genomeId, annotationId, file)
+    return annotationController.uploadAnnotationFile(genomeId, annotationId, file)
 
 @app.get("/files/download")
 def downloadFile(response: Response, filePath: str):

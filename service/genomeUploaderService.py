@@ -63,7 +63,6 @@ class GenomeUploaderService:
             message="File uploaded successfully",
             file_path=file_path,
             file_url=file_url,
-            organism_id=organism_id,
             file_type="genome"
         )
     

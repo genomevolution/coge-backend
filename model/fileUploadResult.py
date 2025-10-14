@@ -8,14 +8,12 @@ class FileUploadResult:
     file_path: str
     file_url: str
     file_type: str
-    organism_id: str
     
-    def __init__(self, message: str, file_path: str, file_url: str, file_type: str, organism_id: str):
+    def __init__(self, message: str, file_path: str, file_url: str, file_type: str):
         self.message = message
         self.file_path = file_path
         self.file_url = file_url
         self.file_type = file_type
-        self.organism_id = organism_id
     
     def to_dict(self) -> dict:
         return {

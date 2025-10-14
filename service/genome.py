@@ -2,14 +2,12 @@ from repository.genome import GenomeRepository
 from model.genome import Genome
 from model.fileUploadResult import FileUploadResult
 from service.genomeUploaderService import GenomeUploaderService
-from service.annotationUploaderService import AnnotationUploaderService
 from fastapi import UploadFile
 
 class GenomeService:
-  def __init__(self, genomeRepository: GenomeRepository, genomeUploaderService: GenomeUploaderService, annotationUploaderService: AnnotationUploaderService):
+  def __init__(self, genomeRepository: GenomeRepository, genomeUploaderService: GenomeUploaderService):
     self.genomeRepository = genomeRepository
     self.genomeUploaderService = genomeUploaderService
-    self.annotationUploaderService = annotationUploaderService
 
   def getGenomesList(self, prev: str, next: str) -> list[Genome]:
     return self.genomeRepository.getGenomesList(prev, next)
@@ -19,6 +17,3 @@ class GenomeService:
   
   def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
     return self.genomeUploaderService.upload_genome_file(organism_id, genome_id, file)
-  
-  def upload_annotation_file(self, organism_id: str, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
-    return self.annotationUploaderService.upload_annotation_file(organism_id, genome_id, annotation_id, file)
