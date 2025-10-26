@@ -17,19 +17,25 @@ CREATE TABLE core.organism (
     species_name VARCHAR(256)
 );
 
+CREATE TABLE organism_data.source (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(256) NOT NULL
+);
+
 CREATE TABLE organism_data.genome (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
     organism_fk VARCHAR(36) NOT NULL REFERENCES core.organism (id),
-    prefix VARCHAR(36) NOT NULL,
     created_at TIMESTAMPTZ,
     name VARCHAR(256),
     description VARCHAR(1024),
     public BOOLEAN,
-    accesion_id VARCHAR(256)
+    accesion_id VARCHAR(256),
+    source_fk VARCHAR(36) REFERENCES organism_data.source (id)
 );
 
 -- migrate:down
 DROP TABLE IF EXISTS organism_data.genome;
+DROP TABLE IF EXISTS organism_data.source;
 DROP TABLE IF EXISTS core.organism;
 DROP TABLE IF EXISTS auth.users;
 DROP SCHEMA IF EXISTS organism_data CASCADE;

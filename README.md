@@ -8,4 +8,10 @@ Run all services
 make run-dev
 ```
 
+Migrate
+
+```
+migrate-up
+```
+
 Run migrations
