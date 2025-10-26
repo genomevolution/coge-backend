@@ -8,7 +8,7 @@ class AnnotationRepository:
 
   def getAnnotation(self, id:str) -> AnnotationEntity:
     rows = self.db.fetchTuplesWithPlaceholders(
-      "SELECT * FROM annotations WHERE id = %s;",
+      "SELECT * FROM organism_data.annotations WHERE id = %s;",
       (id,))
     if len(rows) < 1:
       raise EntityNotFoundException("Annotation not found")
@@ -16,7 +16,7 @@ class AnnotationRepository:
     annotation = AnnotationEntity(result = r)
 
     annotationFileRows = self.db.fetchTuplesWithPlaceholders(
-      "SELECT files.path FROM annotation_files JOIN files ON annotation_files.file_fk = files.id WHERE annotation_files.annotation_fk = %s;",
+      "SELECT data_files.files.path FROM data_files.annotation_files JOIN data_files.files ON data_files.annotation_files.file_fk = data_files.files.id WHERE data_files.annotation_files.annotation_fk = %s;",
       (id,))
     if len(annotationFileRows) > 0:
       fileRow = annotationFileRows[0]

@@ -9,13 +9,13 @@ class GenomeRepository:
     self.db = db
 
   def getGenomesList(self, prev: str, next: str) -> list[Genome]:
-    query = "SELECT * FROM genome JOIN organism ON genome.organism_fk = organism.id LIMIT %s;"
+    query = "SELECT * FROM organism_data.genome JOIN core.organism ON organism_data.genome.organism_fk = core.organism.id LIMIT %s;"
     params = (PAGINATION_LIMIT,)
     if next is not None:
-      query = "SELECT * FROM genome JOIN organism ON genome.organism_fk = organism.id WHERE genome.id > %s LIMIT %s;"
+      query = "SELECT * FROM organism_data.genome JOIN core.organism ON organism_data.genome.organism_fk = core.organism.id WHERE organism_data.genome.id > %s LIMIT %s;"
       params = (next, PAGINATION_LIMIT)
     elif prev is not None:
-      query = "SELECT * FROM genome JOIN organism ON genome.organism_fk = organism.id WHERE genome.id < %s ORDER BY genome.id DESC LIMIT %s;"
+      query = "SELECT * FROM organism_data.genome JOIN core.organism ON organism_data.genome.organism_fk = core.organism.id WHERE organism_data.genome.id < %s ORDER BY organism_data.genome.id DESC LIMIT %s;"
       params = (prev, PAGINATION_LIMIT)
     rows = self.db.fetchTuplesWithPlaceholders(query, params)
     if prev is not None:
@@ -60,10 +60,10 @@ class GenomeRepository:
           gf_paths.gzi_path   AS genome_gzi_path
           
 
-        FROM genome g
-        JOIN organism b
+        FROM organism_data.genome g
+        JOIN core.organism b
           ON b.id = g.organism_fk
-        LEFT JOIN annotations a
+        LEFT JOIN organism_data.annotations a
           ON a.fk_genome = g.id
         LEFT JOIN (
           SELECT
@@ -71,13 +71,13 @@ class GenomeRepository:
             MAX(CASE WHEN gf.type = 'FASTA' THEN f.path END) AS fasta_path,
             MAX(CASE WHEN gf.type = 'FAI'   THEN f.path END) AS fai_path,
             MAX(CASE WHEN gf.type = 'GZI'   THEN f.path END) AS gzi_path
-          FROM genome_files gf
-          JOIN files f ON f.id = gf.file_fk
+          FROM data_files.genome_files gf
+          JOIN data_files.files f ON f.id = gf.file_fk
           GROUP BY gf.genome_fk
         ) gf_paths ON gf_paths.genome_fk = g.id
-        LEFT JOIN annotation_files af
+        LEFT JOIN data_files.annotation_files af
           ON af.annotation_fk = a.id
-        LEFT JOIN files af_file
+        LEFT JOIN data_files.files af_file
           ON af_file.id = af.file_fk
         WHERE g.id = %s;""",
       (id,)

@@ -9,13 +9,13 @@ class OrganismRepository:
     self.db = db
 
   def getOrganismsList(self, prev: str, next: str) -> list[Organism]:
-    query = "SELECT * FROM organism LIMIT %s;"
+    query = "SELECT * FROM core.organism LIMIT %s;"
     params = (PAGINATION_LIMIT,)
     if next is not None:
-      query = "SELECT * FROM organism WHERE id > %s LIMIT %s;"
+      query = "SELECT * FROM core.organism WHERE id > %s LIMIT %s;"
       params = (next, PAGINATION_LIMIT)
     elif prev is not None:
-      query = "SELECT * FROM organism WHERE id < %s ORDER BY id DESC LIMIT %s;"
+      query = "SELECT * FROM core.organism WHERE id < %s ORDER BY id DESC LIMIT %s;"
       params = (prev, PAGINATION_LIMIT)
     rows = self.db.fetchTuplesWithPlaceholders(query, params)
     if prev is not None:
@@ -26,7 +26,7 @@ class OrganismRepository:
 
   def getOrganism(self, id:str) -> Organism:
     rows = self.db.fetchTuplesWithPlaceholders(
-      "SELECT * FROM organism LEFT JOIN genome ON genome.organism_fk = organism.id WHERE organism.id = %s;",
+      "SELECT * FROM core.organism LEFT JOIN organism_data.genome ON organism_data.genome.organism_fk = core.organism.id WHERE core.organism.id = %s;",
       (id,))
     if len(rows) < 1:
       raise EntityNotFoundException("Organism not found")

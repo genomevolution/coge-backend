@@ -1,19 +1,25 @@
 -- migrate:up
-CREATE TABLE users ( id VARCHAR(36) NOT NULL PRIMARY KEY );
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS core;
+CREATE SCHEMA IF NOT EXISTS organism_data;
 
-CREATE TABLE organism (
+CREATE TABLE auth.users ( 
+    id VARCHAR(36) NOT NULL PRIMARY KEY 
+);
+
+CREATE TABLE core.organism (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
-    user_fk VARCHAR(36) REFERENCES users (id),
+    user_fk VARCHAR(36) REFERENCES auth.users (id),
     tax_id VARCHAR(36) NOT NULL,
     metadata JSONB,
     created_at TIMESTAMPTZ,
     species_name VARCHAR(256)
 );
 
-CREATE TABLE genome (
+CREATE TABLE organism_data.genome (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    organism_fk VARCHAR(36) NOT NULL REFERENCES organism (id),
+    organism_fk VARCHAR(36) NOT NULL REFERENCES core.organism (id),
     prefix VARCHAR(36) NOT NULL,
     created_at TIMESTAMPTZ,
     name VARCHAR(256),
@@ -23,8 +29,9 @@ CREATE TABLE genome (
 );
 
 -- migrate:down
-DROP TABLE IF EXISTS genome;
-
-DROP TABLE IF EXISTS organism;
-
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS organism_data.genome;
+DROP TABLE IF EXISTS core.organism;
+DROP TABLE IF EXISTS auth.users;
+DROP SCHEMA IF EXISTS organism_data CASCADE;
+DROP SCHEMA IF EXISTS core CASCADE;
+DROP SCHEMA IF EXISTS auth CASCADE;

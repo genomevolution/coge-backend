@@ -30,7 +30,7 @@ class FileRepository:
         )
         
         query = """
-        INSERT INTO files (id, path, created_at, updated_at, file_metadata)
+        INSERT INTO data_files.files (id, path, created_at, updated_at, file_metadata)
         VALUES (%s, %s, %s, %s, %s)
         """
         params = (
@@ -56,7 +56,7 @@ class FileRepository:
         )
         
         query = """
-        INSERT INTO genome_files (id, file_fk, genome_fk, type)
+        INSERT INTO data_files.genome_files (id, file_fk, genome_fk, type)
         VALUES (%s, %s, %s, %s)
         """
         params = (
@@ -76,7 +76,7 @@ class FileRepository:
         current_time = datetime.utcnow()
         
         query = """
-        INSERT INTO annotations (id, fk_genome, created_at, name, description, public, primary_annotation)
+        INSERT INTO organism_data.annotations (id, fk_genome, created_at, name, description, public, primary_annotation)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         params = (
@@ -104,7 +104,7 @@ class FileRepository:
         )
         
         query = """
-        INSERT INTO annotation_files (id, file_fk, annotation_fk, type)
+        INSERT INTO data_files.annotation_files (id, file_fk, annotation_fk, type)
         VALUES (%s, %s, %s, %s)
         """
         params = (
@@ -119,7 +119,7 @@ class FileRepository:
     
     def get_file_by_path(self, file_path: str) -> File:
         """Get a file record by its path"""
-        query = "SELECT * FROM files WHERE path = %s"
+        query = "SELECT * FROM data_files.files WHERE path = %s"
         rows = self.db.fetchTuplesWithPlaceholders(query, (file_path,))
         
         if len(rows) < 1:
@@ -137,17 +137,17 @@ class FileRepository:
     def delete_file(self, file_id: str) -> bool:
         """Delete a file record and its links"""
         self.db.executeWithPlaceholders(
-            "DELETE FROM genome_files WHERE file_fk = %s",
+            "DELETE FROM data_files.genome_files WHERE file_fk = %s",
             (file_id,)
         )
         
         self.db.executeWithPlaceholders(
-            "DELETE FROM annotation_files WHERE file_fk = %s",
+            "DELETE FROM data_files.annotation_files WHERE file_fk = %s",
             (file_id,)
         )
         
         self.db.executeWithPlaceholders(
-            "DELETE FROM files WHERE id = %s",
+            "DELETE FROM data_files.files WHERE id = %s",
             (file_id,)
         )
         

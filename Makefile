@@ -1,5 +1,11 @@
+## Usado
 run-dev:
-	docker compose --profile dev up --build
+	docker compose --profile dev up --build 
+
+migrate-up:
+	dbmate --env-file dbmate.env --migrations-dir ./db/migrations up
+
+
 
 run-prod:
 	docker compose --profile prod up --build
