@@ -31,7 +31,6 @@ class GenomeRepository:
       """SELECT
           g.id              AS genome_id,
           g.organism_fk    AS genome_organism_fk,
-          g.prefix          AS genome_prefix,
           g.created_at      AS genome_created_at,
           g.name            AS genome_name,
           g.description     AS genome_description,

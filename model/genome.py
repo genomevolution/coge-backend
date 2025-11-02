@@ -7,7 +7,6 @@ class Genome(Paginable):
       self,
       id,
       organism = None,
-      prefix = None,
       createdAt = None,
       name = None,
       description = None,
@@ -17,7 +16,6 @@ class Genome(Paginable):
       fileFaPath = None):
     self.id = id
     self.organism = organism
-    self.prefix = prefix
     self.createdAt = createdAt
     self.name = name
     self.description = description
@@ -32,16 +30,15 @@ class Genome(Paginable):
   
   def __init__(self, result: tuple):
     self.id = result[0] # id
-    self.prefix = result[2] # prefix
-    self.createdAt = result[3] # created at
-    self.name = result[4] # name
-    self.description = result[5] # description
-    self.public = result[6] # public
-    self.accesionId = result[7] # accesion id
-    if len(result) > 8:
-      self.organism = Organism(result[8:])
-      if len(result) > 23 and result[23]:
-        self.filePath = result[23]
-        self.genomeVisualizationFiles = GenomeVisualizationFile(result[23:])
+    self.createdAt = result[2] # created at
+    self.name = result[3] # name
+    self.description = result[4] # description
+    self.public = result[5] # public
+    self.accesionId = result[6] # accesion id
+    if len(result) > 7:
+      self.organism = Organism(result[7:])
+      if len(result) > 22 and result[22]:
+        self.filePath = result[22]
+        self.genomeVisualizationFiles = GenomeVisualizationFile(result[22:])
     else :
       self.organism = None,
