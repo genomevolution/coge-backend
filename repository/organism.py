@@ -1,6 +1,6 @@
 from repository.db import DB
-from model.exceptions.entityNotFoundException import EntityNotFoundException
-from model.paginable import PAGINATION_LIMIT
+from model.exceptions.entity_not_found import EntityNotFoundException
+from model.dto.paginable import PAGINATION_LIMIT
 from model import Organism, Genome, GenomeFile
 from sqlalchemy.orm import joinedload
 
@@ -8,8 +8,8 @@ class OrganismRepository:
   def __init__(self, db: DB):
     self.db = db
 
-  def getOrganisms(self, prev: str, next: str) -> list:
-    session = self.db.getSession()
+  def get_organisms(self, prev: str, next: str) -> list:
+    session = self.db.get_session()
     
     try:
       query = (
@@ -36,8 +36,8 @@ class OrganismRepository:
     finally:
       session.close()
 
-  def getOrganismById(self, id: str):
-    session = self.db.getSession()
+  def get_organism_by_id(self, id: str):
+    session = self.db.get_session()
     
     try:
       organism = (

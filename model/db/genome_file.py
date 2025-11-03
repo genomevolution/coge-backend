@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
-from model.base import Base
+from model.db.base import Base
 
 class GenomeFile(Base):
     __tablename__ = 'genome_files'

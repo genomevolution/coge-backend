@@ -1,5 +1,5 @@
-from model.pagination_metadata import PaginationMetadata
-from model.paginable import PAGE_SIZE
+from model.dto.pagination_metadata import PaginationMetadata
+from model.dto.paginable import PAGE_SIZE
 
 class PaginatedResponse:
     def __init__(self, data: list, prev: str, next: str, to_dict_params: dict = None):

@@ -1,14 +1,24 @@
-from .file_upload_result import FileUploadResult
-from .paginable import Paginable
-from .pagination_metadata import PaginationMetadata
+from model.db import (
+    Annotation,
+    AnnotationFile,
+    Base,
+    File,
+    Genome,
+    GenomeFile,
+    Organism,
+    Source,
+    User
+)
 
-from .base import Base
-from .user import User
-from .organism import Organism
-from .source import Source
-from .genome import Genome
-from .file import File
-from .genome_file import GenomeFile
-from .annotation import Annotation
-from .annotation_file import AnnotationFile
-from .paginated_response import PaginatedResponse
+__all__ = [
+    "Annotation",
+    "AnnotationFile",
+    "Base",
+    "File",
+    "Genome",
+    "GenomeFile",
+    "Organism",
+    "Source",
+    "User"
+]
+

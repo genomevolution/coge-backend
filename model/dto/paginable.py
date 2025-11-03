@@ -1,5 +1,5 @@
 class Paginable:
-  def getId():
+  def get_id():
     pass
 
 PAGE_SIZE = 2

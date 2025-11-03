@@ -1,18 +1,18 @@
 from fastapi import UploadFile
-from service.minioService import MinIOService
+from service.minio_service import MinIOService
 from repository.file import FileRepository
 from repository.annotation import AnnotationRepository
-from model.exceptions.fileUploadException import FileUploadException
-from model.exceptions.invalidFileTypeException import InvalidFileTypeException
-from model.exceptions.fileUrlGenerationException import FileUrlGenerationException
-from model.exceptions.entityNotFoundException import EntityNotFoundException
-from model.file_upload_result import FileUploadResult
+from model.exceptions.file_upload import FileUploadException
+from model.exceptions.invalid_file_type import InvalidFileTypeException
+from model.exceptions.file_url_generation import FileUrlGenerationException
+from model.exceptions.entity_not_found import EntityNotFoundException
+from model.dto.file_upload_result import FileUploadResult
 
 class AnnotationService:
-  def __init__(self, minioService: MinIOService, fileRepository: FileRepository, annotationRepository: AnnotationRepository):
-    self.minioService = minioService
-    self.fileRepository = fileRepository
-    self.annotationRepository = annotationRepository
+  def __init__(self, minio_service: MinIOService, file_repository: FileRepository, annotation_repository: AnnotationRepository):
+    self.minio_service = minio_service
+    self.file_repository = file_repository
+    self.annotation_repository = annotation_repository
     self.allowed_extensions = ['.gff3', '.gff', '.gz']
     
   def _validate_file_extension(self, filename: str) -> None:
@@ -28,7 +28,7 @@ class AnnotationService:
   
   def _upload_annotation_file(self, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
    
-    self.annotationRepository.getAnnotationById(annotation_id)
+    self.annotationRepository.get_annotation_by_id(annotation_id)
     
     file_path = f"genomes/{genome_id}/annotations/{annotation_id}/{file.filename}"
     file_data = file.file.read()

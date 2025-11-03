@@ -1,14 +1,14 @@
 from fastapi import FastAPI, Response, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
-from repository.dbConfig import DBConfig
+from repository.db_config import DBConfig
 from repository.db import DB
 from controller.genome import GenomeController
 from service.genome import GenomeService
 from repository.genome import GenomeRepository
 from repository.annotation import AnnotationRepository
 from repository.file import FileRepository
-from service.minioService import MinIOService
-from service.genomeUploaderService import GenomeUploaderService
+from service.minio_service import MinIOService
+from service.genome_uploader_service import GenomeUploaderService
 from service.annotation import AnnotationService
 from controller.annotation import AnnotationController
 from controller.organism import OrganismController
@@ -31,44 +31,44 @@ annotationController = AnnotationController(annotationService)
 def getOrganism(response: Response, organismId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return organismController.getOrganismById(organismId)
+    return organismController.get_organism_by_id(organismId)
 
 @app.get("/organisms/")
 def getOrganismsListAlchemy(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return organismController.getOrganisms(previous, next)
+    return organismController.get_organisms(previous, next)
 
 @app.get("/genomes/{genomeId}")
 def getGenomeById(response: Response, genomeId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.getGenomeById(genomeId)
+    return genomeController.get_genome_by_id(genomeId)
 
 @app.get("/genomes/")
 def getGenomes(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.getGenomes(previous, next)
+    return genomeController.get_genomes(previous, next)
 
 # File upload endpoints
 @app.post("/organisms/{organismId}/genomes/{genomeId}/upload")
 def uploadGenomeFile(response: Response, organismId: str, genomeId: str, file: UploadFile = File(...)):
     """Upload a genome file (.fa, .fasta, .fna) for a specific genome"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.uploadGenomeFile(organismId, genomeId, file)
+    return genomeController.upload_genome_file(organismId, genomeId, file)
 
 @app.post("/genomes/{genomeId}/annotations/{annotationId}/upload")
 def uploadAnnotationFile(response: Response, genomeId: str, annotationId: str, file: UploadFile = File(...)):
     """Upload an annotation file (.gff3, .gff) for a specific genome and annotation"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return annotationController.uploadAnnotationFile(genomeId, annotationId, file)
+    return annotationController.upload_annotation_file(genomeId, annotationId, file)
 
 @app.get("/files/download")
 def downloadFile(response: Response, filePath: str):
     """Download a file from MinIO using its path"""
     try:
-        file_data = genomeController.downloadFile(filePath)
+        file_data = genomeController.download_file(filePath)
         return StreamingResponse(
             file_data,
             media_type="application/octet-stream",
@@ -81,9 +81,3 @@ def downloadFile(response: Response, filePath: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to download file: {str(e)}")
-
-@app.delete("/files/delete")
-def deleteFile(response: Response, filePath: str):
-    """Delete a file from MinIO using its path"""
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.deleteFile(filePath)

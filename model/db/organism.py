@@ -1,8 +1,8 @@
 from sqlalchemy import Column, String, ForeignKey, TIMESTAMP
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
-from model.base import Base
-from model.paginable import Paginable
+from model.db.base import Base
+from model.dto.paginable import Paginable
 
 class Organism(Base, Paginable):
     __tablename__ = 'organism'
@@ -17,7 +17,7 @@ class Organism(Base, Paginable):
 
     genomes = relationship("Genome", back_populates="organism", lazy='noload')
 
-    def getId(self):
+    def get_id(self):
         return self.id
 
     def to_dict(self, include_genomes=False):

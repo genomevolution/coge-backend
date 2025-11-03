@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
-from model.base import Base
+from model.db.base import Base
 
 class Source(Base):
     __tablename__ = 'source'

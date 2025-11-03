@@ -8,7 +8,7 @@ class FileRepository:
         self.db = db
     
     def create_file(self, file_path: str, metadata: dict = None) -> File:
-        session = self.db.getSession()
+        session = self.db.get_session()
         
         try:
             file_id = str(uuid.uuid4())
@@ -33,7 +33,7 @@ class FileRepository:
     
     def create_genome_file_link(self, file_id: str, genome_id: str, file_type: str) -> GenomeFile:
         """Create a link between a file and a genome"""
-        session = self.db.getSession()
+        session = self.db.get_session()
         
         try:
             genome_file_id = str(uuid.uuid4())
@@ -56,7 +56,7 @@ class FileRepository:
     
     def create_annotation_file_link(self, file_id: str, annotation_id: str, file_type: str) -> AnnotationFile:
         """Create a link between a file and an annotation"""
-        session = self.db.getSession()
+        session = self.db.get_session()
         
         try:
             annotation_file_id = str(uuid.uuid4())

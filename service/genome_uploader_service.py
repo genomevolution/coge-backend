@@ -1,10 +1,10 @@
 from fastapi import UploadFile
-from service.minioService import MinIOService
+from service.minio_service import MinIOService
 from repository.file import FileRepository
-from model.exceptions.fileUploadException import FileUploadException
-from model.exceptions.invalidFileTypeException import InvalidFileTypeException
-from model.exceptions.fileUrlGenerationException import FileUrlGenerationException
-from model.file_upload_result import FileUploadResult
+from model.exceptions.file_upload import FileUploadException
+from model.exceptions.invalid_file_type import InvalidFileTypeException
+from model.exceptions.file_url_generation import FileUrlGenerationException
+from model.dto.file_upload_result import FileUploadResult
 
 class GenomeUploaderService:
     """Service responsible for handling genome file uploads"""

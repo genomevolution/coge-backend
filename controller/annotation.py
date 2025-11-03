@@ -1,19 +1,19 @@
 from service.annotation import AnnotationService
-from model.file_upload_result import FileUploadResult
-from model.exceptions.entityNotFoundException import EntityNotFoundException
-from model.exceptions.bucketCannotBeCreatedException import BucketCannotBeCreatedException
-from model.exceptions.fileUploadException import FileUploadException
-from model.exceptions.invalidFileTypeException import InvalidFileTypeException
-from model.exceptions.fileUrlGenerationException import FileUrlGenerationException
+from model.dto.file_upload_result import FileUploadResult
+from model.exceptions.entity_not_found import EntityNotFoundException
+from model.exceptions.bucket_cannot_be_created import BucketCannotBeCreatedException
+from model.exceptions.file_upload import FileUploadException
+from model.exceptions.invalid_file_type import InvalidFileTypeException
+from model.exceptions.file_url_generation import FileUrlGenerationException
 from fastapi import HTTPException, UploadFile, File
 
 class AnnotationController:
-  def __init__(self, annotationService: AnnotationService):
-    self.annotationService = annotationService
+  def __init__(self, annotation_service: AnnotationService):
+    self.annotation_service = annotation_service
 
-  def uploadAnnotationFile(self, genomeId: str, annotationId: str, file: UploadFile = File(...)) -> FileUploadResult:
+  def upload_annotation_file(self, genomeId: str, annotationId: str, file: UploadFile = File(...)) -> FileUploadResult:
     try:
-      return self.annotationService.upload_annotation_file(genomeId, annotationId, file)
+      return self.annotation_service.upload_annotation_file(genomeId, annotationId, file)
     except EntityNotFoundException as e:
       raise HTTPException(status_code=404, detail=f"Entity not found: {str(e)}")
     except BucketCannotBeCreatedException as e:

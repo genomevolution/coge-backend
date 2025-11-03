@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Boolean, ForeignKey, TIMESTAMP
 from sqlalchemy.orm import relationship
-from model.base import Base
+from model.db.base import Base
 
 class Annotation(Base):
     __tablename__ = 'annotations'
