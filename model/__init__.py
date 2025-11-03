@@ -7,6 +7,7 @@ from .genome import Genome
 from .organism import Organism
 from .paginable import Paginable
 from .paginatedResponse import PaginatedResponse
+from .paginatedResponseAlchemy import PaginatedResponseAlchemy
 from .paginationMetadata import PaginationMetadata
 
 # SQLAlchemy models

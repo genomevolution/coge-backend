@@ -9,8 +9,6 @@ class UserAlchemy(Base):
 
     id = Column(String(36), primary_key=True)
 
-    organisms = relationship("OrganismAlchemy", back_populates="user", lazy='noload')
-
     def to_dict(self):
         return {
             "id": self.id

@@ -27,17 +27,17 @@ genomeController = GenomeController(genomeService, minioService)
 organismController = OrganismController(OrganismService(OrganismRepository(db)))
 annotationController = AnnotationController(annotationService)
 
-@app.get("/organisms/")
-def getOrganismList(response: Response, previous: str = None, next: str = None):
-    response.headers["Content-Type"] = "application/json"
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return organismController.getOrganismsList(previous, next)
-
 @app.get("/organisms/{organismId}")
-def getOrganismById(response: Response, organismId: str):
+def getOrganism(response: Response, organismId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return organismController.getOrganismById(organismId)
+
+@app.get("/organisms/")
+def getOrganismsListAlchemy(response: Response, previous: str = None, next: str = None):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return organismController.getOrganisms(previous, next)
 
 @app.get("/genomes/")
 def getGenomesList(response: Response, previous: str = None, next: str = None):

@@ -10,21 +10,33 @@ class OrganismRepository:
   def __init__(self, db: DB):
     self.db = db
 
-  def getOrganismsList(self, prev: str, next: str) -> list[Organism]:
-    query = "SELECT * FROM core.organism LIMIT %s;"
-    params = (PAGINATION_LIMIT,)
-    if next is not None:
-      query = "SELECT * FROM core.organism WHERE id > %s LIMIT %s;"
-      params = (next, PAGINATION_LIMIT)
-    elif prev is not None:
-      query = "SELECT * FROM core.organism WHERE id < %s ORDER BY id DESC LIMIT %s;"
-      params = (prev, PAGINATION_LIMIT)
-    rows = self.db.fetchTuplesWithPlaceholders(query, params)
-    if prev is not None:
-      rows.reverse()
-    return [
-      Organism(result = r)
-      for r in rows]
+  def getOrganisms(self, prev: str, next: str) -> list:
+    session = self.db.getAlchemySession()
+    
+    try:
+      query = (
+        session.query(OrganismAlchemy)
+        .options(joinedload(OrganismAlchemy.genomes))
+        .order_by(OrganismAlchemy.id)
+      )
+      
+      if next is not None:
+        query = query.filter(OrganismAlchemy.id > next)
+      elif prev is not None:
+        query = (
+          query.filter(OrganismAlchemy.id < prev)
+          .order_by(OrganismAlchemy.id.desc())
+        )
+      
+      organisms = query.limit(PAGINATION_LIMIT).all()
+      
+      if prev is not None:
+        organisms.reverse()
+      
+      return organisms
+    
+    finally:
+      session.close()
 
   def getOrganismById(self, id: str):
     session = self.db.getAlchemySession()
