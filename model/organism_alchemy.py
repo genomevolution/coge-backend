@@ -30,7 +30,15 @@ class OrganismAlchemy(Base):
         }
         
         if include_genomes and self.genomes:
-            result["genomes"] = [genome.to_dict(include_organism=False) for genome in self.genomes]
+            result["genomes"] = [
+                genome.to_dict(
+                    include_organism=False,
+                    include_annotations=True,
+                    include_files=True,
+                    include_source=True
+                ) 
+                for genome in self.genomes
+            ]
         
         return result
 

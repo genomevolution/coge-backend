@@ -17,3 +17,11 @@ class OrganismController:
       return self.organismService.getOrganism(id)
     except EntityNotFoundException:
       raise HTTPException(status_code=404, detail="Organism not found")
+  
+  def getOrganismById(self, id: str):
+    try:
+      return self.organismService.getOrganismById(id)
+    except EntityNotFoundException:
+      raise HTTPException(status_code=404, detail="Organism not found")
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

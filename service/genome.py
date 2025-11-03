@@ -15,16 +15,12 @@ class GenomeService:
   def getGenomeById(self, id: str) -> dict:
     genome = self.genomeRepository.getGenomeById(id)
     
-    result = genome.to_dict(
+    return genome.to_dict(
       include_organism=True,
       include_annotations=True,
-      include_files=True
+      include_files=True,
+      include_source=True
     )
-    
-    if genome.source:
-      result["source"] = genome.source.to_dict()
-    
-    return result
   
   def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
     return self.genomeUploaderService.upload_genome_file(organism_id, genome_id, file)

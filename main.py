@@ -39,6 +39,12 @@ def getOrganism(response: Response, organismId: str):
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return organismController.getOrganism(organismId)
 
+@app.get("/aorganisms/{organismId}")
+def getOrganismById(response: Response, organismId: str):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return organismController.getOrganismById(organismId)
+
 @app.get("/genomes/")
 def getGenomesList(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"

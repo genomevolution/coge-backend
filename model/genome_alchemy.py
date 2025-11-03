@@ -21,7 +21,7 @@ class GenomeAlchemy(Base):
     genome_files = relationship("GenomeFileAlchemy", back_populates="genome", lazy='noload')
     annotations = relationship("AnnotationAlchemy", back_populates="genome", lazy='noload')
 
-    def to_dict(self, include_organism=True, include_annotations=False, include_files=False):
+    def to_dict(self, include_organism=True, include_annotations=False, include_files=False, include_source=False):
         result = {
             "id": self.id,
             "createdAt": self.created_at.isoformat() if self.created_at else None,
@@ -33,6 +33,9 @@ class GenomeAlchemy(Base):
         
         if include_organism and self.organism:
             result["organism"] = self.organism.to_dict()
+        
+        if include_source and self.source:
+            result["source"] = self.source.to_dict()
         
         if include_annotations and self.annotations:
             result["annotations"] = [annotation.to_dict(include_files=True) for annotation in self.annotations]

@@ -3,6 +3,8 @@ from model.organism import Organism
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.paginable import PAGINATION_LIMIT
 from model.genome import Genome
+from model import OrganismAlchemy, GenomeAlchemy, GenomeFileAlchemy
+from sqlalchemy.orm import joinedload
 
 class OrganismRepository:
   def __init__(self, db: DB):
@@ -42,3 +44,26 @@ class OrganismRepository:
   
   def searchOrganism(self, expression: str):
     pass
+  
+  def getOrganismById(self, id: str):
+    session = self.db.getAlchemySession()
+    
+    try:
+      organism = (
+        session.query(OrganismAlchemy)
+        .options(
+          joinedload(OrganismAlchemy.genomes).joinedload(GenomeAlchemy.annotations),
+          joinedload(OrganismAlchemy.genomes).joinedload(GenomeAlchemy.source),
+          joinedload(OrganismAlchemy.genomes).joinedload(GenomeAlchemy.genome_files).joinedload(GenomeFileAlchemy.file)
+        )
+        .filter(OrganismAlchemy.id == id)
+        .first()
+      )
+      
+      if organism is None:
+        raise EntityNotFoundException("Organism not found")
+      
+      return organism
+    
+    finally:
+      session.close()
