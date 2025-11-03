@@ -1,24 +1,44 @@
+from sqlalchemy import Column, String, ForeignKey, TIMESTAMP
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
+from model.base import Base
 from model.paginable import Paginable
 
-class Organism(Paginable):
-  def __init__(self, id, name = None, taxId = None, metadata = None, createdAt = None, speciesName = None, genomes = None):
-    self.id = id
-    self.name = name
-    self.taxId = taxId
-    self.metadata = metadata
-    self.createdAt = createdAt
-    self.speciesName = speciesName
-    self.genomes = genomes
+class Organism(Base, Paginable):
+    __tablename__ = 'organism'
+    __table_args__ = {'schema': 'core'}
 
-  def __init__(self, result: tuple):
-    # ORGANISM
-    # |0:id|1:name|2:user_fk|3:tax_id|4:metadata|5:created_at|6:species_name
-      self.id = result[0] # id
-      self.name = result[1] # name
-      self.taxId = result[3] # tax id
-      self.metadata = result[4] # meadata
-      self.createdAt = result[5] # created at
-      self.speciesName = result[6] # species name
+    id = Column(String(36), primary_key=True)
+    name = Column(String(256), nullable=False)
+    tax_id = Column(String(36), nullable=False)
+    organism_metadata = Column('metadata', JSONB)
+    created_at = Column(TIMESTAMP(timezone=True))
+    species_name = Column(String(256))
 
-  def getId(self):
-    return self.id
+    genomes = relationship("Genome", back_populates="organism", lazy='noload')
+
+    def getId(self):
+        return self.id
+
+    def to_dict(self, include_genomes=False):
+        result = {
+            "id": self.id,
+            "name": self.name,
+            "taxId": self.tax_id,
+            "metadata": self.organism_metadata,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "speciesName": self.species_name
+        }
+        
+        if include_genomes and self.genomes:
+            result["genomes"] = [
+                genome.to_dict(
+                    include_organism=False,
+                    include_annotations=True,
+                    include_files=True,
+                    include_source=True
+                ) 
+                for genome in self.genomes
+            ]
+        
+        return result

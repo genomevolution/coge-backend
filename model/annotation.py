@@ -1,26 +1,33 @@
-from sqlmodel import SQLModel, Field, ForeignKey
-from typing import Optional
-from datetime import datetime
+from sqlalchemy import Column, String, Boolean, ForeignKey, TIMESTAMP
+from sqlalchemy.orm import relationship
+from model.base import Base
 
+class Annotation(Base):
+    __tablename__ = 'annotations'
+    __table_args__ = {'schema': 'organism_data'}
 
-class Annotation(SQLModel, table=True):
-    """Model representing an annotation for a genome"""
-    
-    id: str = Field(primary_key=True, max_length=36)
-    fk_genome: str = Field(foreign_key="genome.id", max_length=36)
-    created_at: Optional[datetime] = Field(default=None)
-    name: Optional[str] = Field(default=None, max_length=256)
-    description: Optional[str] = Field(default=None, max_length=1024)
-    public: Optional[bool] = Field(default=None)
-    primary_annotation: Optional[bool] = Field(default=None)
+    id = Column(String(36), primary_key=True)
+    fk_genome = Column(String(36), ForeignKey('organism_data.genome.id'), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True))
+    name = Column(String(256))
+    description = Column(String(1024))
+    public = Column(Boolean)
+    primary_annotation = Column(Boolean)
 
-    def __init__(self, result: tuple):
-    # ANNOTATIONS
-    # |0:id|1:fk_genome|2:created_at|3:name|4:description|5:public|6:primary_annotation
-      self.id = result[0] # id
-      self.fk_genome = result[1] # fk_genome
-      self.created_at = result[2] # created_at
-      self.name = result[3] # name
-      self.description = result[4] # description
-      self.public = result[5] # public
-      self.primary_annotation = result[6] # primary_annotation
+    genome = relationship("Genome", back_populates="annotations")
+    annotation_files = relationship("AnnotationFile", back_populates="annotation", lazy='noload')
+
+    def to_dict(self, include_files=False):
+        result = {
+            "id": self.id,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "name": self.name,
+            "description": self.description,
+            "public": self.public,
+            "primaryAnnotation": self.primary_annotation
+        }
+        
+        if include_files and self.annotation_files:
+            result["files"] = [af.to_dict() for af in self.annotation_files]
+        
+        return result

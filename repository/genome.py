@@ -1,9 +1,7 @@
 from repository.db import DB
-from model.genome import Genome
-from model.annotationEntity import AnnotationEntity
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.paginable import PAGINATION_LIMIT
-from model import GenomeAlchemy, GenomeFileAlchemy, AnnotationAlchemy, AnnotationFileAlchemy
+from model import Genome, GenomeFile, Annotation, AnnotationFile
 from sqlalchemy.orm import joinedload
 
 class GenomeRepository:
@@ -11,28 +9,28 @@ class GenomeRepository:
     self.db = db
 
   def getGenomes(self, prev: str, next: str) -> list:
-    session = self.db.getAlchemySession()
+    session = self.db.getSession()
     
     try:
       query = (
-        session.query(GenomeAlchemy)
+        session.query(Genome)
         .options(
-          joinedload(GenomeAlchemy.organism),
-          joinedload(GenomeAlchemy.source),
-          joinedload(GenomeAlchemy.genome_files).joinedload(GenomeFileAlchemy.file),
-          joinedload(GenomeAlchemy.annotations)
-            .joinedload(AnnotationAlchemy.annotation_files)
-            .joinedload(AnnotationFileAlchemy.file)
+          joinedload(Genome.organism),
+          joinedload(Genome.source),
+          joinedload(Genome.genome_files).joinedload(GenomeFile.file),
+          joinedload(Genome.annotations)
+            .joinedload(Annotation.annotation_files)
+            .joinedload(AnnotationFile.file)
         )
-        .order_by(GenomeAlchemy.id)
+        .order_by(Genome.id)
       )
       
       if next is not None:
-        query = query.filter(GenomeAlchemy.id > next)
+        query = query.filter(Genome.id > next)
       elif prev is not None:
         query = (
-          query.filter(GenomeAlchemy.id < prev)
-          .order_by(GenomeAlchemy.id.desc())
+          query.filter(Genome.id < prev)
+          .order_by(Genome.id.desc())
         )
       
       genomes = query.limit(PAGINATION_LIMIT).all()
@@ -46,20 +44,20 @@ class GenomeRepository:
       session.close()
 
   def getGenomeById(self, id: str):
-    session = self.db.getAlchemySession()
+    session = self.db.getSession()
     
     try:
       genome = (
-        session.query(GenomeAlchemy)
+        session.query(Genome)
         .options(
-          joinedload(GenomeAlchemy.organism),
-          joinedload(GenomeAlchemy.source),
-          joinedload(GenomeAlchemy.genome_files).joinedload(GenomeFileAlchemy.file),
-          joinedload(GenomeAlchemy.annotations)
-            .joinedload(AnnotationAlchemy.annotation_files)
-            .joinedload(AnnotationFileAlchemy.file)
+          joinedload(Genome.organism),
+          joinedload(Genome.source),
+          joinedload(Genome.genome_files).joinedload(GenomeFile.file),
+          joinedload(Genome.annotations)
+            .joinedload(Annotation.annotation_files)
+            .joinedload(AnnotationFile.file)
         )
-        .filter(GenomeAlchemy.id == id)
+        .filter(Genome.id == id)
         .first()
       )
       

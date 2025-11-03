@@ -2,8 +2,6 @@ from dataclasses import dataclass
 
 @dataclass
 class FileUploadResult:
-    """Result of a file upload operation"""
-    
     message: str
     file_path: str
     file_url: str

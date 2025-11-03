@@ -1,11 +1,10 @@
-from typing import BinaryIO
 from fastapi import UploadFile
 from service.minioService import MinIOService
 from repository.file import FileRepository
 from model.exceptions.fileUploadException import FileUploadException
 from model.exceptions.invalidFileTypeException import InvalidFileTypeException
 from model.exceptions.fileUrlGenerationException import FileUrlGenerationException
-from model.fileUploadResult import FileUploadResult
+from model.file_upload_result import FileUploadResult
 
 class GenomeUploaderService:
     """Service responsible for handling genome file uploads"""
@@ -66,7 +65,7 @@ class GenomeUploaderService:
             file_type="genome"
         )
     
-    def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
+    def uploadGenomeFile(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
         self._validate_file_extension(file.filename)
         
         try:

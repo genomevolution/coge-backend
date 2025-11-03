@@ -11,56 +11,7 @@ class DB:
     self._engine = None
     self._session_factory = None
 
-  def fetchTuples(self, query: str) -> list[tuple]:
-    config = self.dbConfig
-    connection = psycopg2.connect(
-      dbname=config.name,
-      user=config.user,
-      password=config.password,
-      host=config.host,
-      port=config.port)
-    cursor = connection.cursor()
-
-    cursor.execute(query)
-    rows =  cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return rows
-  
-  def fetchTuplesWithPlaceholders(self, query: str, params: tuple) -> list[tuple]:
-    config = self.dbConfig
-    connection = psycopg2.connect(
-      dbname=config.name,
-      user=config.user,
-      password=config.password,
-      host=config.host,
-      port=config.port)
-    cursor = connection.cursor()
-
-    cursor.execute(query, params)
-    rows =  cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return rows
-  
-  def executeWithPlaceholders(self, query: str, params: tuple) -> None:
-    """Execute a query with parameters (INSERT, UPDATE, DELETE)"""
-    config = self.dbConfig
-    connection = psycopg2.connect(
-      dbname=config.name,
-      user=config.user,
-      password=config.password,
-      host=config.host,
-      port=config.port)
-    cursor = connection.cursor()
-
-    cursor.execute(query, params)
-    connection.commit()
-    cursor.close()
-    connection.close()
-  
-  def getAlchemySession(self) -> Session:
-    """Get a SQLAlchemy session for ORM operations"""
+  def getSession(self) -> Session:
     if self._engine is None:
       config = self.dbConfig
       connection_string = f"postgresql://{config.user}:{config.password}@{config.host}:{config.port}/{config.name}"

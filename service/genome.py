@@ -1,7 +1,6 @@
 from repository.genome import GenomeRepository
-from model.genome import Genome
-from model.fileUploadResult import FileUploadResult
-from model.paginatedResponseAlchemy import PaginatedResponseAlchemy
+from model.file_upload_result import FileUploadResult
+from model.paginated_response import PaginatedResponse
 from service.genomeUploaderService import GenomeUploaderService
 from fastapi import UploadFile
 
@@ -12,7 +11,7 @@ class GenomeService:
 
   def getGenomes(self, prev: str, next: str):
     genomes = self.genomeRepository.getGenomes(prev, next)
-    return PaginatedResponseAlchemy(genomes, prev, next, {
+    return PaginatedResponse(genomes, prev, next, {
       "include_organism": True,
       "include_annotations": True,
       "include_files": True,
@@ -29,5 +28,5 @@ class GenomeService:
       include_source=True
     )
   
-  def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
-    return self.genomeUploaderService.upload_genome_file(organism_id, genome_id, file)
+  def uploadGenomeFile(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
+    return self.genomeUploaderService.uploadGenomeFile(organism_id, genome_id, file)

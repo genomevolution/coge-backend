@@ -1,9 +1,7 @@
 from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship
-from model.base_alchemy import Base
+from model.base import Base
 
-
-class UserAlchemy(Base):
+class User(Base):
     __tablename__ = 'users'
     __table_args__ = {'schema': 'auth'}
 
@@ -13,4 +11,3 @@ class UserAlchemy(Base):
         return {
             "id": self.id
         }
-

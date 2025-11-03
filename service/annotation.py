@@ -6,7 +6,7 @@ from model.exceptions.fileUploadException import FileUploadException
 from model.exceptions.invalidFileTypeException import InvalidFileTypeException
 from model.exceptions.fileUrlGenerationException import FileUrlGenerationException
 from model.exceptions.entityNotFoundException import EntityNotFoundException
-from model.fileUploadResult import FileUploadResult
+from model.file_upload_result import FileUploadResult
 
 class AnnotationService:
   def __init__(self, minioService: MinIOService, fileRepository: FileRepository, annotationRepository: AnnotationRepository):
@@ -27,8 +27,9 @@ class AnnotationService:
       )
   
   def _upload_annotation_file(self, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
-    # Just call to check it exists. No need to assign, if not found, an exception is thrown
-    self.annotationRepository.getAnnotation(annotation_id)
+   
+    self.annotationRepository.getAnnotationById(annotation_id)
+    
     file_path = f"genomes/{genome_id}/annotations/{annotation_id}/{file.filename}"
     file_data = file.file.read()
     file_size = len(file_data)

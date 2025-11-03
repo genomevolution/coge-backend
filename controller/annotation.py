@@ -1,5 +1,5 @@
 from service.annotation import AnnotationService
-from model.fileUploadResult import FileUploadResult
+from model.file_upload_result import FileUploadResult
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.exceptions.bucketCannotBeCreatedException import BucketCannotBeCreatedException
 from model.exceptions.fileUploadException import FileUploadException

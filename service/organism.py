@@ -1,5 +1,5 @@
 from repository.organism import OrganismRepository
-from model.paginatedResponseAlchemy import PaginatedResponseAlchemy
+from model.paginated_response import PaginatedResponse
 
 class OrganismService:
   def __init__(self, organismRepository: OrganismRepository):
@@ -7,7 +7,7 @@ class OrganismService:
 
   def getOrganisms(self, prev: str, next: str):
     organisms = self.organismRepository.getOrganisms(prev, next)
-    return PaginatedResponseAlchemy(organisms, prev, next, {"include_genomes": True})
+    return PaginatedResponse(organisms, prev, next, {"include_genomes": True})
   
   def getOrganismById(self, id: str) -> dict:
     organism = self.organismRepository.getOrganismById(id)

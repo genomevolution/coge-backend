@@ -1,8 +1,7 @@
-from model.paginationMetadata import PaginationMetadata
+from model.pagination_metadata import PaginationMetadata
 from model.paginable import PAGE_SIZE
 
-
-class PaginatedResponseAlchemy:
+class PaginatedResponse:
     def __init__(self, data: list, prev: str, next: str, to_dict_params: dict = None):
 
         if to_dict_params is None:
@@ -37,4 +36,3 @@ class PaginatedResponseAlchemy:
                 return
         
         self.data = [item.to_dict(**to_dict_params) for item in data] if data else []
-

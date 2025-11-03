@@ -1,5 +1,4 @@
 from service.organism import OrganismService
-from model.paginatedResponse import PaginatedResponse
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from fastapi import HTTPException
 

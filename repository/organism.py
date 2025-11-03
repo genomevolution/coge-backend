@@ -1,9 +1,7 @@
 from repository.db import DB
-from model.organism import Organism
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.paginable import PAGINATION_LIMIT
-from model.genome import Genome
-from model import OrganismAlchemy, GenomeAlchemy, GenomeFileAlchemy
+from model import Organism, Genome, GenomeFile
 from sqlalchemy.orm import joinedload
 
 class OrganismRepository:
@@ -11,21 +9,21 @@ class OrganismRepository:
     self.db = db
 
   def getOrganisms(self, prev: str, next: str) -> list:
-    session = self.db.getAlchemySession()
+    session = self.db.getSession()
     
     try:
       query = (
-        session.query(OrganismAlchemy)
-        .options(joinedload(OrganismAlchemy.genomes))
-        .order_by(OrganismAlchemy.id)
+        session.query(Organism)
+        .options(joinedload(Organism.genomes))
+        .order_by(Organism.id)
       )
       
       if next is not None:
-        query = query.filter(OrganismAlchemy.id > next)
+        query = query.filter(Organism.id > next)
       elif prev is not None:
         query = (
-          query.filter(OrganismAlchemy.id < prev)
-          .order_by(OrganismAlchemy.id.desc())
+          query.filter(Organism.id < prev)
+          .order_by(Organism.id.desc())
         )
       
       organisms = query.limit(PAGINATION_LIMIT).all()
@@ -39,17 +37,17 @@ class OrganismRepository:
       session.close()
 
   def getOrganismById(self, id: str):
-    session = self.db.getAlchemySession()
+    session = self.db.getSession()
     
     try:
       organism = (
-        session.query(OrganismAlchemy)
+        session.query(Organism)
         .options(
-          joinedload(OrganismAlchemy.genomes).joinedload(GenomeAlchemy.annotations),
-          joinedload(OrganismAlchemy.genomes).joinedload(GenomeAlchemy.source),
-          joinedload(OrganismAlchemy.genomes).joinedload(GenomeAlchemy.genome_files).joinedload(GenomeFileAlchemy.file)
+          joinedload(Organism.genomes).joinedload(Genome.annotations),
+          joinedload(Organism.genomes).joinedload(Genome.source),
+          joinedload(Organism.genomes).joinedload(Genome.genome_files).joinedload(GenomeFile.file)
         )
-        .filter(OrganismAlchemy.id == id)
+        .filter(Organism.id == id)
         .first()
       )
       

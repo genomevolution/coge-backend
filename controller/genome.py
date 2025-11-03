@@ -1,7 +1,6 @@
 from service.genome import GenomeService
 from service.minioService import MinIOService
-from model.paginatedResponse import PaginatedResponse
-from model.fileUploadResult import FileUploadResult
+from model.file_upload_result import FileUploadResult
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.exceptions.bucketCannotBeCreatedException import BucketCannotBeCreatedException
 from model.exceptions.fileUploadException import FileUploadException
@@ -10,8 +9,7 @@ from model.exceptions.fileDownloadException import FileDownloadException
 from model.exceptions.fileDeleteException import FileDeleteException
 from model.exceptions.invalidFileTypeException import InvalidFileTypeException
 from model.exceptions.fileUrlGenerationException import FileUrlGenerationException
-from fastapi import HTTPException, UploadFile, File, Form
-from typing import Optional
+from fastapi import HTTPException, UploadFile, File
 
 class GenomeController:
   def __init__(self, genomeService: GenomeService, minioService: MinIOService):
@@ -33,7 +31,7 @@ class GenomeController:
 
   def uploadGenomeFile(self, organismId: str, genomeId: str, file: UploadFile = File(...)) -> FileUploadResult:
     try:
-      return self.genomeService.upload_genome_file(organismId, genomeId, file)
+      return self.genomeService.uploadGenomeFile(organismId, genomeId, file)
     except BucketCannotBeCreatedException as e:
       raise HTTPException(status_code=500, detail=f"Storage service unavailable: {str(e)}")
     except FileUploadException as e:
