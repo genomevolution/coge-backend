@@ -12,9 +12,6 @@ class GenomeService:
   def getGenomesList(self, prev: str, next: str) -> list[Genome]:
     return self.genomeRepository.getGenomesList(prev, next)
   
-  def getGenome(self, id: str):
-    return self.genomeRepository.getGenome(id)
-  
   def getGenomeById(self, id: str) -> dict:
     genome = self.genomeRepository.getGenomeById(id)
     

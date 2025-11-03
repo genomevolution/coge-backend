@@ -1,21 +1,16 @@
-from typing import Union
 from fastapi import FastAPI, Response, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
 from repository.dbConfig import DBConfig
 from repository.db import DB
-
 from controller.genome import GenomeController
 from service.genome import GenomeService
 from repository.genome import GenomeRepository
-
 from repository.annotation import AnnotationRepository
-
 from repository.file import FileRepository
 from service.minioService import MinIOService
 from service.genomeUploaderService import GenomeUploaderService
 from service.annotation import AnnotationService
 from controller.annotation import AnnotationController
-
 from controller.organism import OrganismController
 from service.organism import OrganismService
 from repository.organism import OrganismRepository
@@ -51,12 +46,6 @@ def getGenomesList(response: Response, previous: str = None, next: str = None):
     return genomeController.getGenomesList(previous, next)
 
 @app.get("/genomes/{genomeId}")
-def getGenome(response: Response, genomeId: str):
-    response.headers["Content-Type"] = "application/json"
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.getGenome(genomeId)
-
-@app.get("/genome_archemy/{genomeId}")
 def getGenomeById(response: Response, genomeId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"

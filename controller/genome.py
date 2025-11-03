@@ -22,13 +22,7 @@ class GenomeController:
     if next is not None and prev is not None:
       raise HTTPException(status_code=400, detail="Only send previous or next")
     return PaginatedResponse(self.genomeService.getGenomesList(prev, next),  prev, next)
-  
-  def getGenome(self, id:str):
-    try:
-      return self.genomeService.getGenome(id)
-    except EntityNotFoundException:
-      raise HTTPException(status_code=404, detail="Genome not found")
-  
+
   def getGenomeById(self, id: str):
     try:
       return self.genomeService.getGenomeById(id)
