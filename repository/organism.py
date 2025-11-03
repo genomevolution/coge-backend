@@ -26,25 +26,6 @@ class OrganismRepository:
       Organism(result = r)
       for r in rows]
 
-  def getOrganism(self, id:str) -> Organism:
-    rows = self.db.fetchTuplesWithPlaceholders(
-      "SELECT * FROM core.organism LEFT JOIN organism_data.genome ON organism_data.genome.organism_fk = core.organism.id WHERE core.organism.id = %s;",
-      (id,))
-    if len(rows) < 1:
-      raise EntityNotFoundException("Organism not found")
-    r = rows[0]
-    organism = Organism(result = r)
-    genomes = []
-    for r in rows:
-      genome_data = r[7:]
-      if any(genome_data):
-        genomes.append(Genome(result = genome_data))
-    organism.genomes = genomes
-    return organism
-  
-  def searchOrganism(self, expression: str):
-    pass
-  
   def getOrganismById(self, id: str):
     session = self.db.getAlchemySession()
     

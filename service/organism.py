@@ -8,9 +8,6 @@ class OrganismService:
   def getOrganismsList(self, prev: str, next: str) -> list[Organism]:
     return self.organismRepository.getOrganismsList(prev, next)
   
-  def getOrganism(self, id:str):
-    return self.organismRepository.getOrganism(id)
-  
   def getOrganismById(self, id: str) -> dict:
     organism = self.organismRepository.getOrganismById(id)
     

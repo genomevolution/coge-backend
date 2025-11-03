@@ -11,12 +11,7 @@ class OrganismController:
     if next is not None and prev is not None:
       raise HTTPException(status_code=400, detail="Only send previous or next")
     return PaginatedResponse(self.organismService.getOrganismsList(prev, next), prev, next)
-  
-  def getOrganism(self, id:str):
-    try:
-      return self.organismService.getOrganism(id)
-    except EntityNotFoundException:
-      raise HTTPException(status_code=404, detail="Organism not found")
+
   
   def getOrganismById(self, id: str):
     try:
