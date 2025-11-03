@@ -39,17 +39,17 @@ def getOrganismsListAlchemy(response: Response, previous: str = None, next: str 
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return organismController.getOrganisms(previous, next)
 
-@app.get("/genomes/")
-def getGenomesList(response: Response, previous: str = None, next: str = None):
-    response.headers["Content-Type"] = "application/json"
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return genomeController.getGenomesList(previous, next)
-
 @app.get("/genomes/{genomeId}")
 def getGenomeById(response: Response, genomeId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.getGenomeById(genomeId)
+
+@app.get("/genomes/")
+def getGenomes(response: Response, previous: str = None, next: str = None):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.getGenomes(previous, next)
 
 # File upload endpoints
 @app.post("/organisms/{organismId}/genomes/{genomeId}/upload")

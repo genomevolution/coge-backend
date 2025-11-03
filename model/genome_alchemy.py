@@ -1,9 +1,10 @@
 from sqlalchemy import Column, String, Boolean, ForeignKey, TIMESTAMP
 from sqlalchemy.orm import relationship
 from model.base_alchemy import Base
+from model.paginable import Paginable
 
 
-class GenomeAlchemy(Base):
+class GenomeAlchemy(Base, Paginable):
     __tablename__ = 'genome'
     __table_args__ = {'schema': 'organism_data'}
 
@@ -20,6 +21,9 @@ class GenomeAlchemy(Base):
     source = relationship("SourceAlchemy", back_populates="genomes", lazy='noload')
     genome_files = relationship("GenomeFileAlchemy", back_populates="genome", lazy='noload')
     annotations = relationship("AnnotationAlchemy", back_populates="genome", lazy='noload')
+
+    def getId(self):
+        return self.id
 
     def to_dict(self, include_organism=True, include_annotations=False, include_files=False, include_source=False):
         result = {

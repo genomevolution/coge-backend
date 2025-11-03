@@ -10,22 +10,40 @@ class GenomeRepository:
   def __init__(self, db: DB):
     self.db = db
 
-  def getGenomesList(self, prev: str, next: str) -> list[Genome]:
-    query = "SELECT * FROM organism_data.genome JOIN core.organism ON organism_data.genome.organism_fk = core.organism.id LIMIT %s;"
-    params = (PAGINATION_LIMIT,)
-    if next is not None:
-      query = "SELECT * FROM organism_data.genome JOIN core.organism ON organism_data.genome.organism_fk = core.organism.id WHERE organism_data.genome.id > %s LIMIT %s;"
-      params = (next, PAGINATION_LIMIT)
-    elif prev is not None:
-      query = "SELECT * FROM organism_data.genome JOIN core.organism ON organism_data.genome.organism_fk = core.organism.id WHERE organism_data.genome.id < %s ORDER BY organism_data.genome.id DESC LIMIT %s;"
-      params = (prev, PAGINATION_LIMIT)
-    rows = self.db.fetchTuplesWithPlaceholders(query, params)
-    if prev is not None:
-      rows.reverse()
-
-    return [
-      Genome(result = r)
-      for r in rows]
+  def getGenomes(self, prev: str, next: str) -> list:
+    session = self.db.getAlchemySession()
+    
+    try:
+      query = (
+        session.query(GenomeAlchemy)
+        .options(
+          joinedload(GenomeAlchemy.organism),
+          joinedload(GenomeAlchemy.source),
+          joinedload(GenomeAlchemy.genome_files).joinedload(GenomeFileAlchemy.file),
+          joinedload(GenomeAlchemy.annotations)
+            .joinedload(AnnotationAlchemy.annotation_files)
+            .joinedload(AnnotationFileAlchemy.file)
+        )
+        .order_by(GenomeAlchemy.id)
+      )
+      
+      if next is not None:
+        query = query.filter(GenomeAlchemy.id > next)
+      elif prev is not None:
+        query = (
+          query.filter(GenomeAlchemy.id < prev)
+          .order_by(GenomeAlchemy.id.desc())
+        )
+      
+      genomes = query.limit(PAGINATION_LIMIT).all()
+      
+      if prev is not None:
+        genomes.reverse()
+      
+      return genomes
+    
+    finally:
+      session.close()
 
   def getGenomeById(self, id: str):
     session = self.db.getAlchemySession()
