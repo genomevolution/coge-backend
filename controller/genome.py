@@ -28,6 +28,14 @@ class GenomeController:
       return self.genomeService.getGenome(id)
     except EntityNotFoundException:
       raise HTTPException(status_code=404, detail="Genome not found")
+  
+  def getGenomeById(self, id: str):
+    try:
+      return self.genomeService.getGenomeById(id)
+    except EntityNotFoundException:
+      raise HTTPException(status_code=404, detail="Genome not found")
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
   def uploadGenomeFile(self, organismId: str, genomeId: str, file: UploadFile = File(...)) -> FileUploadResult:
     try:

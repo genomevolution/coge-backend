@@ -1,6 +1,6 @@
 ## Usado
 run-dev:
-	docker compose --profile dev up --build 
+	docker compose --profile dev up --build --force-recreate 
 
 migrate-up:
 	dbmate --env-file dbmate.env --migrations-dir ./db/migrations up
@@ -10,7 +10,7 @@ run-seeds:
 
 
 run-prod:
-	docker compose --profile prod up --build
+	docker compose --profile prod up --build --force-recreate
 	
 stop-all:
 	docker compose down

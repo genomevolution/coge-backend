@@ -3,6 +3,8 @@ from model.genome import Genome
 from model.annotationEntity import AnnotationEntity
 from model.exceptions.entityNotFoundException import EntityNotFoundException
 from model.paginable import PAGINATION_LIMIT
+from model import GenomeAlchemy, GenomeFileAlchemy, AnnotationAlchemy, AnnotationFileAlchemy
+from sqlalchemy.orm import joinedload
 
 class GenomeRepository:
   def __init__(self, db: DB):
@@ -94,3 +96,31 @@ class GenomeRepository:
     genome.annotations = annotations
 
     return genome
+
+
+  def getGenomeById(self, id: str):
+    session = self.db.getAlchemySession()
+    
+    try:
+      genome = (
+        session.query(GenomeAlchemy)
+        .options(
+          joinedload(GenomeAlchemy.organism),
+          joinedload(GenomeAlchemy.source),
+          joinedload(GenomeAlchemy.genome_files).joinedload(GenomeFileAlchemy.file),
+          joinedload(GenomeAlchemy.annotations)
+            .joinedload(AnnotationAlchemy.annotation_files)
+            .joinedload(AnnotationFileAlchemy.file)
+        )
+        .filter(GenomeAlchemy.id == id)
+        .first()
+      )
+      
+      if genome is None:
+        raise EntityNotFoundException("Genome not found")
+      
+      return genome
+    
+    finally:
+      session.close()
+    

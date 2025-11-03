@@ -56,6 +56,12 @@ def getGenome(response: Response, genomeId: str):
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.getGenome(genomeId)
 
+@app.get("/genome_archemy/{genomeId}")
+def getGenomeById(response: Response, genomeId: str):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.getGenomeById(genomeId)
+
 # File upload endpoints
 @app.post("/organisms/{organismId}/genomes/{genomeId}/upload")
 def uploadGenomeFile(response: Response, organismId: str, genomeId: str, file: UploadFile = File(...)):
