@@ -8,7 +8,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         postgresql-client \
+        tabix \
+        samtools \
+        curl \
+        openjdk-21-jre-headless \
+        procps \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -s https://get.nextflow.io | bash \
+    && mv nextflow /usr/local/bin/ \
+    && chmod +x /usr/local/bin/nextflow \
+    && nextflow -version
 
 WORKDIR /app
 

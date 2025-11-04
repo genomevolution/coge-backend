@@ -6,9 +6,7 @@ from model.exceptions.invalid_file_type import InvalidFileTypeException
 from model.exceptions.file_url_generation import FileUrlGenerationException
 from model.dto.file_upload_result import FileUploadResult
 
-class GenomeUploaderService:
-    """Service responsible for handling genome file uploads"""
-    
+class GenomeUploaderService:    
     def __init__(self, minioService: MinIOService, fileRepository: FileRepository):
         self.minioService = minioService
         self.fileRepository = fileRepository
@@ -32,7 +30,6 @@ class GenomeUploaderService:
         file_size = len(file_data)
         file.file.seek(0)
         
-        # Upload to MinIO
         self.minioService.upload_file(
             file_data=file.file,
             file_name=file_path,
@@ -40,7 +37,6 @@ class GenomeUploaderService:
             file_size=file_size
         )
         
-        # Create file record in database
         file_metadata = {   
             "original_filename": file.filename,
             "file_size": file_size,
@@ -49,7 +45,6 @@ class GenomeUploaderService:
         }
         file_record = self.fileRepository.create_file(file_path, file_metadata)
         
-        # Create genome file link
         self.fileRepository.create_genome_file_link(
             file_record.id, 
             genome_id, 
@@ -65,7 +60,7 @@ class GenomeUploaderService:
             file_type="genome"
         )
     
-    def uploadGenomeFile(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
+    def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
         self._validate_file_extension(file.filename)
         
         try:

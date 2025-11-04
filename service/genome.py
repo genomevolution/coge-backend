@@ -29,4 +29,4 @@ class GenomeService:
     )
   
   def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
-    return self.genomeUploaderService.upload_genome_file(organism_id, genome_id, file)
+    return self.genome_uploader_service.upload_genome_file(organism_id, genome_id, file)

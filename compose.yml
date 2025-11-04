@@ -16,6 +16,12 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
       MINIO_BUCKET_NAME: genomes
+      PROCESSING_TEMP_DIR: /tmp/genome_processing
+    volumes:
+      - nextflow_work:/data/nextflow_work
+      - nextflow_output:/data/nextflow_output
+      - genome_processing:/tmp/genome_processing
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
         condition: service_healthy
@@ -29,7 +35,6 @@ services:
       dockerfile: Dockerfile.prod
     ports:
       - "8001:8000"
-      
     environment:
       DB_USER: coge
       DB_PASSWORD: dummy_password
@@ -40,6 +45,12 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
       MINIO_BUCKET_NAME: genomes
+      PROCESSING_TEMP_DIR: /tmp/genome_processing
+    volumes:
+      - nextflow_work:/data/nextflow_work
+      - nextflow_output:/data/nextflow_output
+      - genome_processing:/tmp/genome_processing
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
         condition: service_healthy
@@ -86,3 +97,6 @@ services:
 volumes:
   db:
   minio_data:
+  nextflow_work:
+  nextflow_output:
+  genome_processing:
