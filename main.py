@@ -48,7 +48,7 @@ genomeProcessingService = GenomeProcessingService(
 monitor_service = ExecutionMonitorService(
     genomeProcessingService,
     processingExecutionRepository,
-    check_interval_seconds=60  # Check every minute
+    check_interval_seconds=10  # Check every 10 seconds
 )
 
 genomeUploaderService = GenomeUploaderService(minioService, fileRepository)

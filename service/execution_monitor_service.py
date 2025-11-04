@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from typing import Optional
+from datetime import datetime
 from service.genome_processing_service import GenomeProcessingService
 from repository.processing_execution import ProcessingExecutionRepository
 
@@ -47,6 +48,7 @@ class ExecutionMonitorService:
     
     async def _monitor_loop(self):
         """Main monitoring loop"""
+        logger.info(f"Monitor loop started with check interval: {self.check_interval_seconds}s")
         while self.running:
             try:
                 await self._check_running_executions()
@@ -61,28 +63,36 @@ class ExecutionMonitorService:
         The lifecycle thread updates metadata.json when Nextflow completes,
         so we just need to check for status changes.
         """
-        running_executions = self.processing_execution_repo.get_running_executions()
+        running_executions = self.processing_execution_repo.get_executions_by_status('RUNNING')
         
         if not running_executions:
+            logger.debug("No running executions found")
             return
         
         logger.info(f"Monitor check: Found {len(running_executions)} running execution(s)")
         
         for execution in running_executions:
             try:
+                logger.info(f"Checking execution {execution.id}")
                 # Get status (reads metadata.json, very fast)
                 status = self.genome_processing_service.get_execution_status(execution.id)
                 current_status = status.get('status')
+                logger.info(f"Execution {execution.id} status: {current_status}")
                 
                 # Update database with current status
                 if current_status != 'RUNNING':
-                    logger.info(f"Execution {execution.id} changed to {current_status}")
+                    logger.info(f"Execution {execution.id} changed from RUNNING to {current_status}")
+                    
+                    now = datetime.utcnow()
+                    completed_at = now if current_status in ['COMPLETED', 'FAILED', 'CANCELLED'] else None
                     
                     self.processing_execution_repo.update_execution_status(
                         execution.id,
                         current_status,
+                        updated_at=now,
                         progress=status.get('progress', 0),
-                        error_message=status.get('error_message')
+                        error_message=status.get('error_message'),
+                        completed_at=completed_at
                     )
                     
                     # If completed successfully, finalize and upload files
@@ -103,9 +113,12 @@ class ExecutionMonitorService:
             )
         except Exception as e:
             logger.error(f"Failed to finalize execution {execution_id}: {e}", exc_info=True)
+            now = datetime.utcnow()
             self.processing_execution_repo.update_execution_status(
                 execution_id,
                 'FAILED',
-                error_message=f"Finalization failed: {str(e)}"
+                updated_at=now,
+                error_message=f"Finalization failed: {str(e)}",
+                completed_at=now
             )
 

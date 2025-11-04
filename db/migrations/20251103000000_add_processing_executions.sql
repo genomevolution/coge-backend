@@ -28,20 +28,6 @@ CREATE INDEX idx_executions_status ON processing.executions(status);
 CREATE INDEX idx_executions_created_at ON processing.executions(created_at DESC);
 CREATE INDEX idx_executions_type_status ON processing.executions(execution_type, status);
 
--- Add trigger to update updated_at timestamp
-CREATE OR REPLACE FUNCTION processing.update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_executions_updated_at 
-    BEFORE UPDATE ON processing.executions 
-    FOR EACH ROW 
-    EXECUTE FUNCTION processing.update_updated_at_column();
-
 -- Add comment to table
 COMMENT ON TABLE processing.executions IS 'Tracks Nextflow pipeline executions for genome processing tasks';
 COMMENT ON COLUMN processing.executions.status IS 'Execution status: PENDING, RUNNING, COMPLETED, FAILED, CANCELLED';
@@ -49,8 +35,6 @@ COMMENT ON COLUMN processing.executions.execution_type IS 'Type of processing: G
 COMMENT ON COLUMN processing.executions.progress IS 'Execution progress from 0 to 100';
 
 -- migrate:down
-DROP TRIGGER IF EXISTS update_executions_updated_at ON processing.executions;
-DROP FUNCTION IF EXISTS processing.update_updated_at_column();
 DROP TABLE IF EXISTS processing.executions;
 DROP SCHEMA IF EXISTS processing CASCADE;
 

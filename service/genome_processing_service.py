@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import Dict
+from datetime import datetime
 from service.nextflow_executor_service import NextflowExecutorService
 from service.minio_service import MinIOService
 from repository.processing_execution import ProcessingExecutionRepository
@@ -45,15 +46,21 @@ class GenomeProcessingService:
             
             status = self.nextflow_executor.get_execution_status(execution_id)
             
+            now = datetime.utcnow()
             self.processing_execution_repo.create_execution(
                 execution_id=execution_id,
                 genome_id=genome_id,
                 execution_type='GENOME_INDEXING',
+                status='RUNNING',
+                progress=0,
                 pid=status.get('pid'),
                 profile=profile,
                 fasta_path=fasta_minio_path,
                 output_dir=status.get('output_dir'),
                 log_file=status.get('log_file'),
+                started_at=now,
+                created_at=now,
+                updated_at=now,
                 metadata={
                     'organism_id': organism_id,
                     'temp_fasta_path': str(temp_fasta)
@@ -68,18 +75,7 @@ class GenomeProcessingService:
             raise e
     
     def get_execution_status(self, execution_id: str) -> Dict:
-        status = self.nextflow_executor.get_execution_status(execution_id)
-        
-        db_execution = self.processing_execution_repo.get_execution_by_id(execution_id)
-        if db_execution:
-            self.processing_execution_repo.update_execution_status(
-                execution_id=execution_id,
-                status=status.get('status', 'UNKNOWN'),
-                progress=status.get('progress', 0),
-                error_message=status.get('error_message')
-            )
-        
-        return status
+        return self.nextflow_executor.get_execution_status(execution_id)
     
     def finalize_execution(self, execution_id: str) -> Dict:
         status = self.nextflow_executor.get_execution_status(execution_id)
@@ -137,7 +133,8 @@ class GenomeProcessingService:
         
         self.processing_execution_repo.update_execution_metadata(
             execution_id,
-            {"uploaded_files": uploaded_files}
+            {"uploaded_files": uploaded_files},
+            datetime.utcnow()
         )
         
         return {
@@ -169,9 +166,12 @@ class GenomeProcessingService:
         cancelled = self.nextflow_executor.cancel_execution(execution_id)
         
         if cancelled:
+            now = datetime.utcnow()
             self.processing_execution_repo.update_execution_status(
                 execution_id,
-                status='CANCELLED'
+                status='CANCELLED',
+                updated_at=now,
+                completed_at=now
             )
         
         return cancelled

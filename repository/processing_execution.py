@@ -1,11 +1,8 @@
-import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from sqlalchemy import desc
 from model.db.processing_execution import ProcessingExecution
 from repository.db import DB
-
-STATUS_RUNNING = 'RUNNING'
 
 class ProcessingExecutionRepository:
     def __init__(self, db: DB):
@@ -13,73 +10,93 @@ class ProcessingExecutionRepository:
     
     def create_execution(
         self,
+        execution_id: str,
         genome_id: str,
         execution_type: str,
+        status: str,
+        progress: int,
         pid: int,
         profile: str,
         fasta_path: str,
         output_dir: str,
         log_file: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        execution_id: Optional[str] = None
+        started_at: datetime,
+        created_at: datetime,
+        updated_at: datetime,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> ProcessingExecution:
-        if execution_id is None:
-            execution_id = str(uuid.uuid4())
-        
-        now = datetime.utcnow()
-        
-        execution = ProcessingExecution(
-            id=execution_id,
-            genome_id=genome_id,
-            execution_type=execution_type,
-            status=STATUS_RUNNING,
-            progress=0,
-            pid=pid,
-            profile=profile,
-            fasta_path=fasta_path,
-            output_dir=output_dir,
-            log_file=log_file,
-            execution_metadata=metadata,
-            started_at=now,
-            created_at=now,
-            updated_at=now
-        )
-        
-        with self.db.get_session() as session:
+        try:
+            session = self.db.get_session()
+            
+            execution = ProcessingExecution(
+                id=execution_id,
+                genome_id=genome_id,
+                execution_type=execution_type,
+                status=status,
+                progress=progress,
+                pid=pid,
+                profile=profile,
+                fasta_path=fasta_path,
+                output_dir=output_dir,
+                log_file=log_file,
+                execution_metadata=metadata,
+                started_at=started_at,
+                created_at=created_at,
+                updated_at=updated_at
+            )
+            
             session.add(execution)
             session.commit()
             return execution
+        
+        finally:
+            session.close()
     
-    def get_execution_by_id(self, execution_id: str) -> Optional[ProcessingExecution]:
-        with self.db.get_session() as session:
+    def get_execution_by_id(self, execution_id: str) -> Optional[ProcessingExecution]:     
+        try:
+            session = self.db.get_session()
             return session.query(ProcessingExecution).filter(
                 ProcessingExecution.id == execution_id
             ).first()
+        
+        finally:
+            session.close()
     
     def get_executions_by_genome_id(
         self, 
         genome_id: str, 
         limit: int = 10
     ) -> List[ProcessingExecution]:
-        with self.db.get_session() as session:
+        try:
+            session = self.db.get_session()
             return session.query(ProcessingExecution).filter(
                 ProcessingExecution.genome_id == genome_id
             ).order_by(desc(ProcessingExecution.created_at)).limit(limit).all()
+        
+        finally:
+            session.close()
     
-    def get_running_executions(self) -> List[ProcessingExecution]:
-        with self.db.get_session() as session:
+    def get_executions_by_status(self, status: str) -> List[ProcessingExecution]:
+        try:
+            session = self.db.get_session()
             return session.query(ProcessingExecution).filter(
-                ProcessingExecution.status == STATUS_RUNNING
+                ProcessingExecution.status == status
             ).all()
+        
+        finally:
+            session.close()
     
     def update_execution_status(
         self,
         execution_id: str,
         status: str,
+        updated_at: datetime,
         progress: Optional[int] = None,
-        error_message: Optional[str] = None
+        error_message: Optional[str] = None,
+        completed_at: Optional[datetime] = None
     ) -> Optional[ProcessingExecution]:
-        with self.db.get_session() as session:
+        try:
+            session = self.db.get_session()
             execution = session.query(ProcessingExecution).filter(
                 ProcessingExecution.id == execution_id
             ).first()
@@ -87,27 +104,29 @@ class ProcessingExecutionRepository:
             if not execution:
                 return None
             
-            execution.status = status
-            execution.updated_at = datetime.utcnow()
-            
-            if progress is not None:
-                execution.progress = progress
-            
-            if error_message is not None:
-                execution.error_message = error_message
-            
-            if status in ['COMPLETED', 'FAILED', 'CANCELLED']:
-                execution.completed_at = datetime.utcnow()
+            self._update_execution_params(
+                execution,
+                status,
+                updated_at,
+                progress,
+                error_message,
+                completed_at
+            )
             
             session.commit()
             return execution
+        
+        finally:
+            session.close()
     
     def update_execution_progress(
         self,
         execution_id: str,
-        progress: int
+        progress: int,
+        updated_at: datetime
     ) -> Optional[ProcessingExecution]:
-        with self.db.get_session() as session:
+        try:
+            session = self.db.get_session()
             execution = session.query(ProcessingExecution).filter(
                 ProcessingExecution.id == execution_id
             ).first()
@@ -116,16 +135,21 @@ class ProcessingExecutionRepository:
                 return None
             
             execution.progress = progress
-            execution.updated_at = datetime.utcnow()
+            execution.updated_at = updated_at
             session.commit()
             return execution
+        
+        finally:
+            session.close()
     
     def update_execution_metadata(
         self,
         execution_id: str,
-        metadata: Dict[str, Any]
+        metadata: Dict[str, Any],
+        updated_at: datetime
     ) -> Optional[ProcessingExecution]:
-        with self.db.get_session() as session:
+        try:
+            session = self.db.get_session()  
             execution = session.query(ProcessingExecution).filter(
                 ProcessingExecution.id == execution_id
             ).first()
@@ -133,17 +157,17 @@ class ProcessingExecutionRepository:
             if not execution:
                 return None
             
-            if execution.execution_metadata:
-                execution.execution_metadata.update(metadata)
-            else:
-                execution.execution_metadata = metadata
+            self._update_metadata_params(execution, metadata, updated_at)
             
-            execution.updated_at = datetime.utcnow()
             session.commit()
             return execution
+        
+        finally:
+            session.close()
     
     def delete_execution(self, execution_id: str) -> bool:
-        with self.db.get_session() as session:
+        try:
+            session = self.db.get_session()
             execution = session.query(ProcessingExecution).filter(
                 ProcessingExecution.id == execution_id
             ).first()
@@ -154,4 +178,40 @@ class ProcessingExecutionRepository:
             session.delete(execution)
             session.commit()
             return True
-
+        
+        finally:
+            session.close()
+    
+    def _update_execution_params(
+        self,
+        execution: ProcessingExecution,
+        status: str,
+        updated_at: datetime,
+        progress: Optional[int] = None,
+        error_message: Optional[str] = None,
+        completed_at: Optional[datetime] = None
+    ) -> None:
+        execution.status = status
+        execution.updated_at = updated_at
+        
+        if progress is not None:
+            execution.progress = progress
+        
+        if error_message is not None:
+            execution.error_message = error_message
+        
+        if completed_at is not None:
+            execution.completed_at = completed_at
+    
+    def _update_metadata_params(
+        self,
+        execution: ProcessingExecution,
+        metadata: Dict[str, Any],
+        updated_at: datetime
+    ) -> None:
+        if execution.execution_metadata:
+            execution.execution_metadata.update(metadata)
+        else:
+            execution.execution_metadata = metadata
+        
+        execution.updated_at = updated_at
