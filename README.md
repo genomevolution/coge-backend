@@ -2,43 +2,20 @@
 
 ## Run it
 
-First, start the DB and MinIO
+Run all services
 
-```sh
-make start_db
+```
+make run-dev
 ```
 
-Open another terminal and run the following
+Migrate
 
-```sh
-source .venv/bin/activate
+```
+migrate-up
 ```
 
-```sh
-source local.env
-```
-
-```sh
-make run_server
-```
-
-curl --location --request POST 'http://localhost:8000/biosamples/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/c06eb1b3-a80b-4e9e-aa55-e92ae4c0a0bc/annotation/annotations/3f822d4c-e3bc-4df4-9ea9-993fc451f215/upload' \
---form 'file=@"LL0772_assignedKin.fa.gz.gzi"'
+Run migrations
 
 
-curl --location --request POST 'http://localhost:8000/biosamples/a39bc378-29a4-4e17-99c3-7ff5783fcde9/genomes/f67ff84a-fc90-41df-9e16-4282d7568647/annotations/6de7d105-c66e-474e-85dd-86105a6968ef/upload' \
---form 'file=@"ILL0772.sorted.gff3.gz"'
 
-### Database Integration
-
-When files are uploaded, the system automatically:
-
-- Creates a record in the `files` table with metadata
-- Links genome files to genomes via `genome_files` table
-- Creates annotation records and links them via `annotation_files` table
-
-### MinIO Access
-
-- MinIO Console: http://localhost:9001
-- MinIO API: http://localhost:9000
-- Default credentials: minioadmin / minioadmin123
+curl --location --request POST 'http://127.0.0.1:8000/organisms/4ba32111-dced-4cf0-9837-3d85dd8321fc/genomes/6e638b6b-6023-4bde-a76d-08350dd09955/upload' --form 'file=@"LL0772_assignedKin.fa"'

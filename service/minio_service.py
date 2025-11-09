@@ -2,13 +2,12 @@ from typing import BinaryIO
 from minio import Minio
 from minio.error import S3Error
 from config import config
-from model.exceptions.bucketCannotBeCreatedException import BucketCannotBeCreatedException
-from model.exceptions.fileUploadException import FileUploadException
-from model.exceptions.fileNotFoundException import FileNotFoundException
-from model.exceptions.fileDownloadException import FileDownloadException
-from model.exceptions.fileDeleteException import FileDeleteException
-from model.exceptions.invalidFileTypeException import InvalidFileTypeException
-from model.exceptions.fileUrlGenerationException import FileUrlGenerationException
+from model.exceptions.bucket_cannot_be_created import BucketCannotBeCreatedException
+from model.exceptions.file_upload import FileUploadException
+from model.exceptions.file_not_found import FileNotFoundException
+from model.exceptions.file_download import FileDownloadException
+from model.exceptions.invalid_file_type import InvalidFileTypeException
+from model.exceptions.file_url_generation import FileUrlGenerationException
 
 class MinIOService:
     def __init__(self):
@@ -51,18 +50,11 @@ class MinIOService:
                 raise FileNotFoundException(file_name)
             raise FileDownloadException(file_name, str(e))
 
-    def delete_file(self, file_name: str) -> bool:
-        try:
-            self.minio_client.remove_object(self.bucket_name, file_name)
-            return True
-        except S3Error as e:
-            raise FileDeleteException(file_name, str(e))
-
-    def generate_file_path(self, biosample_id: str, file_type: str, original_filename: str) -> str:
+    def generate_file_path(self, organism_id: str, file_type: str, original_filename: str) -> str:
         if file_type == "genome":
-            return f"{biosample_id}/genomes/{original_filename}"
+            return f"{organism_id}/genomes/{original_filename}"
         elif file_type == "annotation":
-            return f"{biosample_id}/annotation/{original_filename}"
+            return f"{organism_id}/annotation/{original_filename}"
         else:
             raise InvalidFileTypeException(file_type, ["genome", "annotation"])
 

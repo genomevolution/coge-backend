@@ -1,24 +1,32 @@
 from repository.genome import GenomeRepository
-from model.genome import Genome
-from model.fileUploadResult import FileUploadResult
-from service.genomeUploaderService import GenomeUploaderService
-from service.annotationUploaderService import AnnotationUploaderService
+from model.dto.file_upload_result import FileUploadResult
+from model.dto.paginated_response import PaginatedResponse
+from service.genome_uploader_service import GenomeUploaderService
 from fastapi import UploadFile
 
 class GenomeService:
-  def __init__(self, genomeRepository: GenomeRepository, genomeUploaderService: GenomeUploaderService, annotationUploaderService: AnnotationUploaderService):
-    self.genomeRepository = genomeRepository
-    self.genomeUploaderService = genomeUploaderService
-    self.annotationUploaderService = annotationUploaderService
+  def __init__(self, genome_repository: GenomeRepository, genome_uploader_service: GenomeUploaderService):
+    self.genome_repository = genome_repository
+    self.genome_uploader_service = genome_uploader_service
 
-  def getGenomesList(self, prev: str, next: str) -> list[Genome]:
-    return self.genomeRepository.getGenomesList(prev, next)
+  def get_genomes(self, prev: str, next: str):
+    genomes = self.genome_repository.get_genomes(prev, next)
+    return PaginatedResponse(genomes, prev, next, {
+      "include_organism": True,
+      "include_annotations": True,
+      "include_files": True,
+      "include_source": True
+    })
   
-  def getGenome(self, id:str):
-    return self.genomeRepository.getGenome(id)
+  def get_genome_by_id(self, id: str) -> dict:
+    genome = self.genome_repository.get_genome_by_id(id)
+    
+    return genome.to_dict(
+      include_organism=True,
+      include_annotations=True,
+      include_files=True,
+      include_source=True
+    )
   
-  def upload_genome_file(self, biosample_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
-    return self.genomeUploaderService.upload_genome_file(biosample_id, genome_id, file)
-  
-  def upload_annotation_file(self, biosample_id: str, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
-    return self.annotationUploaderService.upload_annotation_file(biosample_id, genome_id, annotation_id, file)
+  def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
+    return self.genome_uploader_service.upload_genome_file(organism_id, genome_id, file)

@@ -1,8 +1,16 @@
+## Usado
 run-dev:
-	docker compose --profile dev up --build
+	docker compose --profile dev up --build --force-recreate 
+
+migrate-up:
+	dbmate --env-file dbmate.env --migrations-dir ./db/migrations up
+
+run-seeds:
+	PGPASSWORD=dummy_password psql -h localhost -U coge -d comparative_genomics -f ./db/seeds/seeds.sql
+
 
 run-prod:
-	docker compose --profile prod up --build
+	docker compose --profile prod up --build --force-recreate
 	
 stop-all:
 	docker compose down
@@ -30,5 +38,3 @@ migrate-up:
 migrate-down:
 	dbmate --env-file dbmate.env --migrations-dir ./db/migrations down
 
-run-seeds:
-	PGPASSWORD=dummy_password psql -h localhost -U coge -d comparative_genomics -f ./db/seeds/seeds.sql
