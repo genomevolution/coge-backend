@@ -70,7 +70,7 @@ class NextflowExecutorService:
             "pid": process.pid,
             "organism_id": organism_id,
             "genome_id": genome_id,
-            "fasta_path": fasta_local_path,
+            "original_path": fasta_local_path,
             "status": ExecutionStatus.RUNNING.value,
             "profile": profile,
             "log_file": str(log_file),

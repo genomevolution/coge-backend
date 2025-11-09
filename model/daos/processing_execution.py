@@ -14,7 +14,7 @@ class ProcessingExecution(Base):
     progress = Column(Integer, default=0)
     pid = Column(Integer)
     profile = Column(String(50))
-    fasta_path = Column(Text)
+    original_path = Column(Text)
     output_dir = Column(Text)
     log_file = Column(Text)
     error_message = Column(Text)
@@ -35,7 +35,7 @@ class ProcessingExecution(Base):
             "progress": self.progress,
             "pid": self.pid,
             "profile": self.profile,
-            "fastaPath": self.fasta_path,
+            "originalPath": self.original_path,
             "outputDir": self.output_dir,
             "logFile": self.log_file,
             "errorMessage": self.error_message,

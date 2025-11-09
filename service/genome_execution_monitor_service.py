@@ -8,7 +8,7 @@ from service.execution_status import ExecutionStatus
 
 logger = logging.getLogger(__name__)
 
-class ExecutionMonitorService:
+class GenomeExecutionMonitorService:
     def __init__(
         self,
         genome_processing_service: GenomeProcessingService,

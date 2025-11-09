@@ -14,7 +14,7 @@ from service.genome_uploader_service import GenomeUploaderService
 from service.annotation import AnnotationService
 from service.nextflow_executor_service import NextflowExecutorService
 from service.genome_processing_service import GenomeProcessingService
-from service.execution_monitor_service import ExecutionMonitorService
+from service.genome_execution_monitor_service import GenomeExecutionMonitorService
 from controller.annotation import AnnotationController
 from controller.organism import OrganismController
 from service.organism import OrganismService
@@ -47,7 +47,7 @@ genomeProcessingService = GenomeProcessingService(
 )
 
 # Background monitor service - auto-finalizes completed executions
-monitor_service = ExecutionMonitorService(
+monitor_service = GenomeExecutionMonitorService(
     genomeProcessingService,
     processingExecutionRepository,
     check_interval_seconds=10  # Check every 10 seconds

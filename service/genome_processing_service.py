@@ -70,7 +70,7 @@ class GenomeProcessingService:
                 progress=0,
                 pid=status.get('pid'),
                 profile=profile,
-                fasta_path=fasta_minio_path,
+                original_path=fasta_minio_path,
                 output_dir=status.get('output_dir'),
                 log_file=status.get('log_file'),
                 started_at=now,
