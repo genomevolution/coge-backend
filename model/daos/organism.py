@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, ForeignKey, TIMESTAMP
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
-from model.db.base import Base
+from model.daos.base import Base
 from model.dto.paginable import Paginable
 
 class Organism(Base, Paginable):

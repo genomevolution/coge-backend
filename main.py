@@ -19,14 +19,13 @@ from controller.annotation import AnnotationController
 from controller.organism import OrganismController
 from service.organism import OrganismService
 from repository.organism import OrganismRepository
+from config import config
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifespan - start/stop background services"""
-    # Startup
     await monitor_service.start()
     yield
-    # Shutdown
     await monitor_service.stop()
 
 app = FastAPI(lifespan=lifespan)
@@ -36,7 +35,10 @@ minioService = MinIOService()
 fileRepository = FileRepository(db)
 processingExecutionRepository = ProcessingExecutionRepository(db)
 
-nextflowExecutor = NextflowExecutorService()
+nextflowExecutor = NextflowExecutorService(
+    work_dir=config.NEXTFLOW_WORK_DIR,
+    output_dir=config.NEXTFLOW_OUTPUT_DIR
+)
 genomeProcessingService = GenomeProcessingService(
     nextflowExecutor,
     minioService,

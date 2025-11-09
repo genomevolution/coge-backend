@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, TIMESTAMP
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
-from model.db.base import Base
+from model.daos.base import Base
 
 class File(Base):
     __tablename__ = 'files'

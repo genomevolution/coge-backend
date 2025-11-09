@@ -1,18 +1,12 @@
 import asyncio
 import logging
-from enum import Enum
 from typing import Optional
 from datetime import datetime
 from service.genome_processing_service import GenomeProcessingService
 from repository.processing_execution import ProcessingExecutionRepository
+from service.execution_status import ExecutionStatus
 
 logger = logging.getLogger(__name__)
-
-class ExecutionStatus(str, Enum):
-    RUNNING = 'RUNNING'
-    COMPLETED = 'COMPLETED'
-    FAILED = 'FAILED'
-    CANCELLED = 'CANCELLED'
 
 class ExecutionMonitorService:
     def __init__(

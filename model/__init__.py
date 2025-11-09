@@ -1,4 +1,4 @@
-from model.db import (
+from model.daos import (
     Annotation,
     AnnotationFile,
     Base,

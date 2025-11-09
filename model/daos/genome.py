@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Boolean, ForeignKey, TIMESTAMP
 from sqlalchemy.orm import relationship
-from model.db.base import Base
+from model.daos.base import Base
 from model.dto.paginable import Paginable
 
 class Genome(Base, Paginable):

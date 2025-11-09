@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
-from model.db.base import Base
+from model.daos.base import Base
 
 class AnnotationFile(Base):
     __tablename__ = 'annotation_files'

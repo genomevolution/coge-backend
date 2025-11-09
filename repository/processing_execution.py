@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from sqlalchemy import desc
-from model.db.processing_execution import ProcessingExecution
+from model.daos.processing_execution import ProcessingExecution
 from repository.db import DB
 
 class ProcessingExecutionRepository:

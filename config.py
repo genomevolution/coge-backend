@@ -15,10 +15,17 @@ class Config:
     MINIO_SECRET_KEY: str
     MINIO_BUCKET_NAME: str
     
+    PROCESSING_TEMP_DIR: str
+    
+    NEXTFLOW_WORK_DIR: str
+    NEXTFLOW_OUTPUT_DIR: str
+    
     def __init__(self):
         """Initialize configuration from environment variables"""
         self._load_database_config()
         self._load_minio_config()
+        self._load_processing_config()
+        self._load_nextflow_config()
     
     def _load_database_config(self):
         """Load database configuration from environment variables"""
@@ -33,6 +40,15 @@ class Config:
         self.MINIO_ACCESS_KEY = self._get_env_with_default("MINIO_ACCESS_KEY", "minioadmin")
         self.MINIO_SECRET_KEY = self._get_env_with_default("MINIO_SECRET_KEY", "minioadmin123")
         self.MINIO_BUCKET_NAME = self._get_env_with_default("MINIO_BUCKET_NAME", "genomes")
+    
+    def _load_processing_config(self):
+        """Load processing configuration from environment variables"""
+        self.PROCESSING_TEMP_DIR = self._get_env_with_default("PROCESSING_TEMP_DIR", "/tmp/genome_processing")
+    
+    def _load_nextflow_config(self):
+        """Load Nextflow configuration from environment variables"""
+        self.NEXTFLOW_WORK_DIR = self._get_env_with_default("NEXTFLOW_WORK_DIR", "/data/nextflow_work")
+        self.NEXTFLOW_OUTPUT_DIR = self._get_env_with_default("NEXTFLOW_OUTPUT_DIR", "/data/nextflow_output")
     
     def _get_required_env(self, key: str) -> str:
         value = os.environ.get(key)
