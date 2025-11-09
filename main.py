@@ -15,6 +15,8 @@ from service.annotation import AnnotationService
 from service.nextflow_executor_service import NextflowExecutorService
 from service.genome_processing_service import GenomeProcessingService
 from service.genome_execution_monitor_service import GenomeExecutionMonitorService
+from service.annotation_processing_service import AnnotationProcessingService
+from service.annotation_execution_monitor_service import AnnotationExecutionMonitorService
 from controller.annotation import AnnotationController
 from controller.organism import OrganismController
 from service.organism import OrganismService
@@ -24,9 +26,11 @@ from config import config
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifespan - start/stop background services"""
-    await monitor_service.start()
+    await genome_monitor_service.start()
+    await annotation_monitor_service.start()
     yield
-    await monitor_service.stop()
+    await genome_monitor_service.stop()
+    await annotation_monitor_service.stop()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -46,9 +50,22 @@ genomeProcessingService = GenomeProcessingService(
     fileRepository
 )
 
-# Background monitor service - auto-finalizes completed executions
-monitor_service = GenomeExecutionMonitorService(
+annotationProcessingService = AnnotationProcessingService(
+    nextflowExecutor,
+    minioService,
+    processingExecutionRepository,
+    fileRepository
+)
+
+# Background monitor services - auto-finalize completed executions
+genome_monitor_service = GenomeExecutionMonitorService(
     genomeProcessingService,
+    processingExecutionRepository,
+    check_interval_seconds=10  # Check every 10 seconds
+)
+
+annotation_monitor_service = AnnotationExecutionMonitorService(
+    annotationProcessingService,
     processingExecutionRepository,
     check_interval_seconds=10  # Check every 10 seconds
 )
@@ -58,7 +75,7 @@ annotationService = AnnotationService(minioService, fileRepository, AnnotationRe
 genomeService = GenomeService(GenomeRepository(db), genomeUploaderService)
 genomeController = GenomeController(genomeService, minioService, genomeProcessingService)
 organismController = OrganismController(OrganismService(OrganismRepository(db)))
-annotationController = AnnotationController(annotationService)
+annotationController = AnnotationController(annotationService, annotationProcessingService)
 
 @app.get("/organisms/")
 def getOrganismsListAlchemy(response: Response, previous: str = None, next: str = None):
@@ -90,10 +107,11 @@ def uploadGenomeFile(response: Response, organismId: str, genomeId: str, file: U
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.upload_genome_file(organismId, genomeId, file)
 
-@app.post("/genomes/{genomeId}/annotations/{annotationId}/upload")
-def uploadAnnotationFile(response: Response, genomeId: str, annotationId: str, file: UploadFile = File(...)):
+@app.post("/organisms/{organismId}/genomes/{genomeId}/annotations/{annotationId}/upload")
+def uploadAnnotationFile(response: Response, organismId: str, genomeId: str, annotationId: str, file: UploadFile = File(...)):
+    """Upload an annotation file (.gff3, .gff) and automatically start processing for JBrowse"""
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    return annotationController.upload_annotation_file(genomeId, annotationId, file)
+    return annotationController.upload_annotation_file(organismId, genomeId, annotationId, file)
 
 @app.get("/files/download")
 def downloadFile(response: Response, filePath: str):
@@ -133,3 +151,24 @@ def cancelProcessingExecution(response: Response, executionId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.cancel_processing_execution(executionId)
+
+@app.get("/annotations/processing/executions/{executionId}")
+def getAnnotationProcessingExecutionStatus(response: Response, executionId: str):
+    """Get the status of an annotation processing execution (Nextflow pipeline)"""
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return annotationController.get_processing_execution_status(executionId)
+
+@app.post("/annotations/processing/executions/{executionId}/finalize")
+def finalizeAnnotationProcessingExecution(response: Response, executionId: str):
+    """Finalize a completed annotation execution by uploading generated files to MinIO"""
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return annotationController.finalize_processing_execution(executionId)
+
+@app.delete("/annotations/processing/executions/{executionId}")
+def cancelAnnotationProcessingExecution(response: Response, executionId: str):
+    """Cancel a running annotation processing execution"""
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return annotationController.cancel_processing_execution(executionId)

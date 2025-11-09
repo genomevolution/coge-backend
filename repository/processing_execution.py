@@ -86,6 +86,17 @@ class ProcessingExecutionRepository:
         finally:
             session.close()
     
+    def get_executions_by_status_and_type(self, status: str, execution_type: str) -> List[ProcessingExecution]:
+        try:
+            session = self.db.get_session()
+            return session.query(ProcessingExecution).filter(
+                ProcessingExecution.status == status,
+                ProcessingExecution.execution_type == execution_type
+            ).all()
+        
+        finally:
+            session.close()
+    
     def update_execution_status(
         self,
         execution_id: str,
