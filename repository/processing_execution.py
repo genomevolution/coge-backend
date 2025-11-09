@@ -17,7 +17,7 @@ class ProcessingExecutionRepository:
         progress: int,
         pid: int,
         profile: str,
-        fasta_path: str,
+        original_path: str,
         output_dir: str,
         log_file: str,
         started_at: datetime,
@@ -36,7 +36,7 @@ class ProcessingExecutionRepository:
                 progress=progress,
                 pid=pid,
                 profile=profile,
-                fasta_path=fasta_path,
+                original_path=original_path,
                 output_dir=output_dir,
                 log_file=log_file,
                 execution_metadata=metadata,
@@ -81,6 +81,17 @@ class ProcessingExecutionRepository:
             session = self.db.get_session()
             return session.query(ProcessingExecution).filter(
                 ProcessingExecution.status == status
+            ).all()
+        
+        finally:
+            session.close()
+    
+    def get_executions_by_status_and_type(self, status: str, execution_type: str) -> List[ProcessingExecution]:
+        try:
+            session = self.db.get_session()
+            return session.query(ProcessingExecution).filter(
+                ProcessingExecution.status == status,
+                ProcessingExecution.execution_type == execution_type
             ).all()
         
         finally:

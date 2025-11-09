@@ -13,6 +13,7 @@ RUN apt-get update \
         curl \
         openjdk-21-jre-headless \
         procps \
+        genometools \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -s https://get.nextflow.io | bash \

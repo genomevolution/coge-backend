@@ -70,7 +70,7 @@ class NextflowExecutorService:
             "pid": process.pid,
             "organism_id": organism_id,
             "genome_id": genome_id,
-            "fasta_path": fasta_local_path,
+            "original_path": fasta_local_path,
             "status": ExecutionStatus.RUNNING.value,
             "profile": profile,
             "log_file": str(log_file),
@@ -91,6 +91,79 @@ class NextflowExecutorService:
         )
         
         logger.info(f"Started Nextflow execution {execution_id} with PID {process.pid}")
+        
+        return execution_id
+    
+    def execute_annotation_processing(
+        self,
+        organism_id: str,
+        genome_id: str,
+        annotation_id: str,
+        gff3_local_path: str,
+        profile: str = "standard"
+    ) -> str:
+        execution_id = str(uuid.uuid4())
+        execution_dir = self.work_dir / execution_id
+        execution_output_dir = self.output_dir / execution_id
+        execution_dir.mkdir(exist_ok=True)
+        execution_output_dir.mkdir(exist_ok=True)
+        
+        log_file = execution_dir / FileNames.NEXTFLOW_LOG.value
+        
+        cmd = [
+            "nextflow",
+            "run",
+            str(self.workflows_dir / FileNames.ANNOTATION_PROCESSING_WORKFLOW.value),
+            "-c", str(self.config_file),
+            "-profile", profile,
+            "-work-dir", str(execution_dir / "work"),
+            "--gff3_file", gff3_local_path,
+            "--organism_id", organism_id,
+            "--genome_id", genome_id,
+            "--annotation_id", annotation_id,
+            "--output_dir", str(execution_output_dir),
+            "-with-report", str(execution_dir / FileNames.REPORT.value),
+            "-with-trace", str(execution_dir / FileNames.TRACE.value),
+            "-with-timeline", str(execution_dir / FileNames.TIMELINE.value),
+            "-with-dag", str(execution_dir / FileNames.DAG.value),
+            "-resume"
+        ]
+        
+        with open(log_file, 'w') as log:
+            process = subprocess.Popen(
+                cmd,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                cwd=str(self.workflows_dir.parent)
+            )
+        
+        metadata = {
+            "execution_id": execution_id,
+            "pid": process.pid,
+            "organism_id": organism_id,
+            "genome_id": genome_id,
+            "annotation_id": annotation_id,
+            "original_path": gff3_local_path,
+            "status": ExecutionStatus.RUNNING.value,
+            "profile": profile,
+            "log_file": str(log_file),
+            "output_dir": str(execution_output_dir),
+            "started_at": datetime.utcnow().isoformat(),
+            "completed_at": None,
+            "error_message": None
+        }
+        
+        with open(execution_dir / FileNames.METADATA.value, 'w') as f:
+            json.dump(metadata, f, indent=2)
+        
+        self.executor.submit(
+            self._manage_execution_lifecycle,
+            process,
+            execution_id,
+            execution_dir
+        )
+        
+        logger.info(f"Started annotation processing execution {execution_id} with PID {process.pid}")
         
         return execution_id
     
@@ -249,10 +322,16 @@ class NextflowExecutorService:
         metadata["total_tasks"] = progress_info["total"]
     
     def _update_completed_files(self, metadata: Dict) -> None:
-        metadata["generated_files"] = self._get_generated_files(
-            Path(metadata["output_dir"]),
-            metadata["genome_id"]
-        )
+        if metadata.get("annotation_id"):
+            metadata["generated_files"] = self._get_annotation_generated_files(
+                Path(metadata["output_dir"]),
+                metadata["annotation_id"]
+            )
+        else:
+            metadata["generated_files"] = self._get_generated_files(
+                Path(metadata["output_dir"]),
+                metadata["genome_id"]
+            )
     
     def _get_recent_logs(self, log_file: Path, lines: int = 50) -> str:
         if not log_file.exists():
@@ -285,6 +364,39 @@ class NextflowExecutorService:
             files["gzi_index"] = str(gzi_file)
         if fai_file.exists():
             files["fai_index"] = str(fai_file)
+        
+        return files
+    
+    def _get_annotation_generated_files(self, output_dir: Path, annotation_id: str) -> Dict[str, str]:
+        files = {
+            "sorted_gff3": None,
+            "gff3_gz": None,
+            "tabix_index": None
+        }
+        
+        logger.info(f"Looking for annotation files in {output_dir} for annotation_id={annotation_id}")
+        
+        if not output_dir.exists():
+            logger.warning(f"Output directory does not exist: {output_dir}")
+            return files
+        
+        sorted_gff3_file = output_dir / f"{annotation_id}{FileNames.SORTED_GFF3_EXTENSION.value}"
+        gff3_gz_file = output_dir / f"{annotation_id}{FileNames.GFF3_GZ_EXTENSION.value}"
+        tabix_file = output_dir / f"{annotation_id}{FileNames.TABIX_EXTENSION.value}"
+        
+        logger.info(f"Checking for files:")
+        logger.info(f"  - sorted_gff3: {sorted_gff3_file} (exists: {sorted_gff3_file.exists()})")
+        logger.info(f"  - gff3_gz: {gff3_gz_file} (exists: {gff3_gz_file.exists()})")
+        logger.info(f"  - tabix: {tabix_file} (exists: {tabix_file.exists()})")
+        
+        if sorted_gff3_file.exists():
+            files["sorted_gff3"] = str(sorted_gff3_file)
+        if gff3_gz_file.exists():
+            files["gff3_gz"] = str(gff3_gz_file)
+        if tabix_file.exists():
+            files["tabix_index"] = str(tabix_file)
+        
+        logger.info(f"Found annotation files: {files}")
         
         return files
     

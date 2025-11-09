@@ -2,7 +2,6 @@
 -- Create schema for processing jobs
 CREATE SCHEMA IF NOT EXISTS processing;
 
--- Create processing_executions table to track Nextflow pipeline executions
 CREATE TABLE processing.executions (
     id VARCHAR(36) PRIMARY KEY,
     genome_id VARCHAR(36) REFERENCES organism_data.genome(id) ON DELETE CASCADE,
@@ -11,7 +10,7 @@ CREATE TABLE processing.executions (
     progress INTEGER DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
     pid INTEGER,
     profile VARCHAR(50),
-    fasta_path TEXT,
+    original_path TEXT,
     output_dir TEXT,
     log_file TEXT,
     error_message TEXT,

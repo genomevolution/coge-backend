@@ -28,14 +28,14 @@ class AnnotationService:
   
   def _upload_annotation_file(self, genome_id: str, annotation_id: str, file: UploadFile) -> FileUploadResult:
    
-    self.annotationRepository.get_annotation_by_id(annotation_id)
+    self.annotation_repository.get_annotation_by_id(annotation_id)
     
-    file_path = f"genomes/{genome_id}/annotations/{annotation_id}/{file.filename}"
+    file_path = f"annotation/{annotation_id}/{file.filename}"
     file_data = file.file.read()
     file_size = len(file_data)
     file.file.seek(0)
     
-    self.minioService.upload_file(
+    self.minio_service.upload_file(
       file_data=file.file,
       file_name=file_path,
       content_type=file.content_type or "text/plain",
@@ -50,15 +50,18 @@ class AnnotationService:
       "annotation_id": annotation_id
     }
 
-    file_record = self.fileRepository.create_file(file_path, file_metadata)
+    file_record = self.file_repository.create_file(file_path, file_metadata)
     
-    self.fileRepository.create_annotation_file_link(
+    annotation_file_link = self.file_repository.create_annotation_file_link(
       file_record.id,
       annotation_id,
-      "annotation"
+      "GFF3"
     )
     
-    file_url = self.minioService.get_file_url(file_path)
+    if not annotation_file_link:
+      raise FileUploadException(file.filename, "Failed to create annotation file link in database")
+    
+    file_url = self.minio_service.get_file_url(file_path)
     
     return FileUploadResult(
       message="File uploaded successfully",

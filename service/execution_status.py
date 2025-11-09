@@ -20,8 +20,12 @@ class FileNames(str, Enum):
     TIMELINE = 'timeline.html'
     DAG = 'dag.html'
     GENOME_INDEXING_WORKFLOW = 'genome_indexing.nf'
+    ANNOTATION_PROCESSING_WORKFLOW = 'annotation_processing.nf'
     NEXTFLOW_CONFIG = 'nextflow.config'
     FASTA_GZ_EXTENSION = '.fa.gz'
     GZI_EXTENSION = '.fa.gz.gzi'
     FAI_EXTENSION = '.fa.gz.fai'
+    SORTED_GFF3_EXTENSION = '.sorted.gff3'
+    GFF3_GZ_EXTENSION = '.sorted.gff3.gz'
+    TABIX_EXTENSION = '.sorted.gff3.gz.tbi'
 
