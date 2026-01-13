@@ -1,6 +1,6 @@
 ## Usado
 run-dev:
-	docker compose --profile dev up --build --force-recreate 
+	docker compose --profile dev up --build --force-recreate  -d
 
 migrate-up:
 	dbmate --env-file dbmate.env --migrations-dir ./db/migrations up
