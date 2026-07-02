@@ -2,10 +2,13 @@ from repository.genome import GenomeRepository
 from model.dto.file_upload_result import FileUploadResult
 from model.dto.paginated_response import PaginatedResponse
 from fastapi import UploadFile
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+  from service.genome_uploader_service import GenomeUploaderService
 
 class GenomeService:
-  def __init__(self, genome_repository: GenomeRepository, genome_uploader_service: Any):
+  def __init__(self, genome_repository: GenomeRepository, genome_uploader_service: "GenomeUploaderService"):
     self.genome_repository = genome_repository
     self.genome_uploader_service = genome_uploader_service
 
