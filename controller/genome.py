@@ -36,6 +36,16 @@ class GenomeController:
     except Exception as e:
       raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
+  def create_genome(self, organismId: str, data: dict):
+    try:
+      return self.genome_service.create_genome(organismId, data)
+    except ValueError as e:
+      raise HTTPException(status_code=400, detail=str(e))
+    except EntityNotFoundException as e:
+      raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
   def upload_genome_file(self, organismId: str, genomeId: str, file: UploadFile = File(...)):
     try:
       result = self.genome_service.upload_genome_file(organismId, genomeId, file)

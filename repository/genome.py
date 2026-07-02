@@ -1,8 +1,10 @@
 from repository.db import DB
 from model.exceptions.entity_not_found import EntityNotFoundException
 from model.dto.paginable import PAGINATION_LIMIT
-from model import Genome, GenomeFile, Annotation, AnnotationFile
+from model import Genome, GenomeFile, Annotation, AnnotationFile, Organism, Source
 from sqlalchemy.orm import joinedload
+from datetime import datetime
+import uuid
 
 class GenomeRepository:
   def __init__(self, db: DB):
@@ -40,6 +42,47 @@ class GenomeRepository:
       
       return genomes
     
+    finally:
+      session.close()
+
+  def create_genome(
+    self,
+    organism_id: str,
+    name: str,
+    description: str,
+    public: bool,
+    accession_id: str,
+    source_id: str = None
+  ):
+    session = self.db.get_session()
+
+    try:
+      organism = session.query(Organism).filter(Organism.id == organism_id).first()
+      if organism is None:
+        raise EntityNotFoundException("Organism not found")
+
+      if source_id:
+        source = session.query(Source).filter(Source.id == source_id).first()
+        if source is None:
+          raise EntityNotFoundException("Source not found")
+
+      genome = Genome(
+        id=str(uuid.uuid4()),
+        organism_fk=organism_id,
+        created_at=datetime.utcnow(),
+        name=name,
+        description=description,
+        public=public,
+        accesion_id=accession_id,
+        source_fk=source_id
+      )
+
+      session.add(genome)
+      session.commit()
+      session.refresh(genome)
+
+      return genome
+
     finally:
       session.close()
 

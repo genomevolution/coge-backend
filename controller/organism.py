@@ -18,3 +18,11 @@ class OrganismController:
       raise HTTPException(status_code=404, detail="Organism not found")
     except Exception as e:
       raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+  def create_organism(self, data: dict):
+    try:
+      return self.organismService.create_organism(data)
+    except ValueError as e:
+      raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

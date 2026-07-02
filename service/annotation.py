@@ -1,5 +1,4 @@
 from fastapi import UploadFile
-from service.minio_service import MinIOService
 from repository.file import FileRepository
 from repository.annotation import AnnotationRepository
 from model.exceptions.file_upload import FileUploadException
@@ -7,9 +6,10 @@ from model.exceptions.invalid_file_type import InvalidFileTypeException
 from model.exceptions.file_url_generation import FileUrlGenerationException
 from model.exceptions.entity_not_found import EntityNotFoundException
 from model.dto.file_upload_result import FileUploadResult
+from typing import Any
 
 class AnnotationService:
-  def __init__(self, minio_service: MinIOService, file_repository: FileRepository, annotation_repository: AnnotationRepository):
+  def __init__(self, minio_service: Any, file_repository: FileRepository, annotation_repository: AnnotationRepository):
     self.minio_service = minio_service
     self.file_repository = file_repository
     self.annotation_repository = annotation_repository
@@ -78,3 +78,24 @@ class AnnotationService:
       raise e
     except Exception as e:
       raise FileUploadException(file.filename, str(e))
+
+  def create_annotation(self, genome_id: str, data: dict) -> dict:
+    self._validate_create_payload(data)
+
+    annotation = self.annotation_repository.create_annotation(
+      genome_id=genome_id,
+      name=data.get("name").strip(),
+      description=data.get("description").strip(),
+      public=bool(data.get("public", True)),
+      primary_annotation=bool(data.get("primaryAnnotation", False))
+    )
+
+    return annotation.to_dict(include_files=True)
+
+  def _validate_create_payload(self, data: dict):
+    if data is None:
+      raise ValueError("Request body is required")
+
+    for field in ["name", "description"]:
+      if not data.get(field) or not str(data.get(field)).strip():
+        raise ValueError(f"{field} is required")

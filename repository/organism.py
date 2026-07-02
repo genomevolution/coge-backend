@@ -3,6 +3,8 @@ from model.exceptions.entity_not_found import EntityNotFoundException
 from model.dto.paginable import PAGINATION_LIMIT
 from model import Organism, Genome, GenomeFile
 from sqlalchemy.orm import joinedload
+from datetime import datetime
+import uuid
 
 class OrganismRepository:
   def __init__(self, db: DB):
@@ -56,5 +58,27 @@ class OrganismRepository:
       
       return organism
     
+    finally:
+      session.close()
+
+  def create_organism(self, name: str, tax_id: str, species_name: str, metadata: dict = None):
+    session = self.db.get_session()
+
+    try:
+      organism = Organism(
+        id=str(uuid.uuid4()),
+        name=name,
+        tax_id=tax_id,
+        species_name=species_name,
+        organism_metadata=metadata,
+        created_at=datetime.utcnow()
+      )
+
+      session.add(organism)
+      session.commit()
+      session.refresh(organism)
+
+      return organism
+
     finally:
       session.close()

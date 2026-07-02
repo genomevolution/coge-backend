@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Response, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from repository.db_config import DBConfig
 from repository.db import DB
@@ -21,6 +22,9 @@ from controller.annotation import AnnotationController
 from controller.organism import OrganismController
 from service.organism import OrganismService
 from repository.organism import OrganismRepository
+from controller.source import SourceController
+from service.source import SourceService
+from repository.source import SourceRepository
 from config import config
 
 @asynccontextmanager
@@ -33,6 +37,14 @@ async def lifespan(app: FastAPI):
     await annotation_monitor_service.stop()
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 db = DB(DBConfig())
 minioService = MinIOService()
@@ -76,6 +88,7 @@ genomeService = GenomeService(GenomeRepository(db), genomeUploaderService)
 genomeController = GenomeController(genomeService, minioService, genomeProcessingService)
 organismController = OrganismController(OrganismService(OrganismRepository(db)))
 annotationController = AnnotationController(annotationService, annotationProcessingService)
+sourceController = SourceController(SourceService(SourceRepository(db)))
 
 @app.get("/organisms/")
 def getOrganismsListAlchemy(response: Response, previous: str = None, next: str = None):
@@ -83,11 +96,23 @@ def getOrganismsListAlchemy(response: Response, previous: str = None, next: str 
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return organismController.get_organisms(previous, next)
 
+@app.post("/organisms/")
+def createOrganism(response: Response, data: dict):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return organismController.create_organism(data)
+
 @app.get("/organisms/{organismId}")
 def getOrganism(response: Response, organismId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return organismController.get_organism_by_id(organismId)
+
+@app.post("/organisms/{organismId}/genomes/")
+def createGenome(response: Response, organismId: str, data: dict):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return genomeController.create_genome(organismId, data)
 
 @app.get("/genomes/")
 def getGenomes(response: Response, previous: str = None, next: str = None):
@@ -100,6 +125,18 @@ def getGenomeById(response: Response, genomeId: str):
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
     return genomeController.get_genome_by_id(genomeId)
+
+@app.post("/genomes/{genomeId}/annotations/")
+def createAnnotation(response: Response, genomeId: str, data: dict):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return annotationController.create_annotation(genomeId, data)
+
+@app.get("/sources/")
+def getSources(response: Response):
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return sourceController.get_sources()
 
 @app.post("/organisms/{organismId}/genomes/{genomeId}/upload")
 def uploadGenomeFile(response: Response, organismId: str, genomeId: str, file: UploadFile = File(...)):
