@@ -6,13 +6,18 @@ from model.exceptions.invalid_file_type import InvalidFileTypeException
 from model.exceptions.file_url_generation import FileUrlGenerationException
 from model.exceptions.entity_not_found import EntityNotFoundException
 from model.dto.file_upload_result import FileUploadResult
-from typing import TYPE_CHECKING
+from typing import BinaryIO, Protocol
 
-if TYPE_CHECKING:
-  from service.minio_service import MinIOService
+
+class MinIOClient(Protocol):
+  def upload_file(self, file_data: BinaryIO, file_name: str, content_type: str, file_size: int) -> str:
+    ...
+
+  def get_file_url(self, file_name: str, expires_in_seconds: int = 3600) -> str:
+    ...
 
 class AnnotationService:
-  def __init__(self, minio_service: "MinIOService", file_repository: FileRepository, annotation_repository: AnnotationRepository):
+  def __init__(self, minio_service: MinIOClient, file_repository: FileRepository, annotation_repository: AnnotationRepository):
     self.minio_service = minio_service
     self.file_repository = file_repository
     self.annotation_repository = annotation_repository
