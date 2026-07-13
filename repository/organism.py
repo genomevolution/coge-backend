@@ -2,6 +2,7 @@ from repository.db import DB
 from model.exceptions.entity_not_found import EntityNotFoundException
 from model.dto.paginable import PAGINATION_LIMIT
 from model import Organism, Genome, GenomeFile
+from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 import uuid
@@ -17,15 +18,27 @@ class OrganismRepository:
       query = (
         session.query(Organism)
         .options(joinedload(Organism.genomes))
-        .order_by(Organism.id)
+        .order_by(desc(Organism.created_at), desc(Organism.id))
       )
       
       if next is not None:
-        query = query.filter(Organism.id > next)
+        cursor = self._get_cursor_organism(session, next)
+        query = query.filter(
+          or_(
+            Organism.created_at < cursor.created_at,
+            and_(Organism.created_at == cursor.created_at, Organism.id < cursor.id)
+          )
+        )
       elif prev is not None:
+        cursor = self._get_cursor_organism(session, prev)
         query = (
-          query.filter(Organism.id < prev)
-          .order_by(Organism.id.desc())
+          query.filter(
+            or_(
+              Organism.created_at > cursor.created_at,
+              and_(Organism.created_at == cursor.created_at, Organism.id > cursor.id)
+            )
+          )
+          .order_by(Organism.created_at, Organism.id)
         )
       
       organisms = query.limit(PAGINATION_LIMIT).all()
@@ -37,6 +50,14 @@ class OrganismRepository:
     
     finally:
       session.close()
+
+  def _get_cursor_organism(self, session, organism_id: str):
+    organism = session.query(Organism).filter(Organism.id == organism_id).first()
+
+    if organism is None:
+      raise EntityNotFoundException("Organism not found")
+
+    return organism
 
   def get_organism_by_id(self, id: str):
     session = self.db.get_session()

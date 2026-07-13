@@ -2,6 +2,7 @@ from repository.db import DB
 from model.exceptions.entity_not_found import EntityNotFoundException
 from model.dto.paginable import PAGINATION_LIMIT
 from model import Genome, GenomeFile, Annotation, AnnotationFile, Organism, Source
+from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 import uuid
@@ -24,15 +25,27 @@ class GenomeRepository:
             .joinedload(Annotation.annotation_files)
             .joinedload(AnnotationFile.file)
         )
-        .order_by(Genome.id)
+        .order_by(desc(Genome.created_at), desc(Genome.id))
       )
       
       if next is not None:
-        query = query.filter(Genome.id > next)
+        cursor = self._get_cursor_genome(session, next)
+        query = query.filter(
+          or_(
+            Genome.created_at < cursor.created_at,
+            and_(Genome.created_at == cursor.created_at, Genome.id < cursor.id)
+          )
+        )
       elif prev is not None:
+        cursor = self._get_cursor_genome(session, prev)
         query = (
-          query.filter(Genome.id < prev)
-          .order_by(Genome.id.desc())
+          query.filter(
+            or_(
+              Genome.created_at > cursor.created_at,
+              and_(Genome.created_at == cursor.created_at, Genome.id > cursor.id)
+            )
+          )
+          .order_by(Genome.created_at, Genome.id)
         )
       
       genomes = query.limit(PAGINATION_LIMIT).all()
@@ -44,6 +57,14 @@ class GenomeRepository:
     
     finally:
       session.close()
+
+  def _get_cursor_genome(self, session, genome_id: str):
+    genome = session.query(Genome).filter(Genome.id == genome_id).first()
+
+    if genome is None:
+      raise EntityNotFoundException("Genome not found")
+
+    return genome
 
   def create_genome(
     self,
