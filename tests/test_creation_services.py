@@ -1,5 +1,6 @@
 import pytest
 
+from model.exceptions.duplicate_entity import DuplicateEntityException
 from model.exceptions.entity_not_found import EntityNotFoundException
 from service.annotation import AnnotationService
 from service.genome import GenomeService
@@ -17,8 +18,12 @@ class FakeEntity:
 
 
 class FakeOrganismRepository:
-  def __init__(self):
+  def __init__(self, existing_organism=None):
     self.created = None
+    self.existing_organism = existing_organism
+
+  def find_organism_by_identity(self, name, tax_id, species_name):
+    return self.existing_organism
 
   def create_organism(self, name, tax_id, species_name, metadata=None):
     self.created = {
@@ -130,6 +135,20 @@ def test_create_organism_rejects_missing_required_fields(missing_field):
 
   with pytest.raises(ValueError):
     service.create_organism(payload)
+
+
+def test_create_organism_rejects_duplicate_identity():
+  repository = FakeOrganismRepository(existing_organism=FakeEntity(id="organism-1"))
+  service = OrganismService(repository)
+
+  with pytest.raises(DuplicateEntityException):
+    service.create_organism({
+      "name": "UN0010",
+      "taxId": "5660",
+      "speciesName": "Leishmania braziliensis"
+    })
+
+  assert repository.created is None
 
 
 def test_create_genome_for_existing_organism():

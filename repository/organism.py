@@ -1,8 +1,8 @@
 from repository.db import DB
 from model.exceptions.entity_not_found import EntityNotFoundException
 from model.dto.paginable import PAGINATION_LIMIT
-from model import Organism, Genome, GenomeFile
-from sqlalchemy import and_, desc, or_
+from model import Annotation, AnnotationFile, Organism, Genome, GenomeFile
+from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 import uuid
@@ -67,6 +67,10 @@ class OrganismRepository:
         session.query(Organism)
         .options(
           joinedload(Organism.genomes).joinedload(Genome.annotations),
+          joinedload(Organism.genomes)
+            .joinedload(Genome.annotations)
+            .joinedload(Annotation.annotation_files)
+            .joinedload(AnnotationFile.file),
           joinedload(Organism.genomes).joinedload(Genome.source),
           joinedload(Organism.genomes).joinedload(Genome.genome_files).joinedload(GenomeFile.file)
         )
@@ -79,6 +83,23 @@ class OrganismRepository:
       
       return organism
     
+    finally:
+      session.close()
+
+  def find_organism_by_identity(self, name: str, tax_id: str, species_name: str):
+    session = self.db.get_session()
+
+    try:
+      return (
+        session.query(Organism)
+        .filter(
+          Organism.tax_id == tax_id,
+          func.lower(Organism.name) == name.lower(),
+          func.lower(Organism.species_name) == species_name.lower()
+        )
+        .first()
+      )
+
     finally:
       session.close()
 
