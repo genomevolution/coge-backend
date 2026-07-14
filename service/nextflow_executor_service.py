@@ -53,8 +53,7 @@ class NextflowExecutorService:
             "-with-report", str(execution_dir / FileNames.REPORT.value),
             "-with-trace", str(execution_dir / FileNames.TRACE.value),
             "-with-timeline", str(execution_dir / FileNames.TIMELINE.value),
-            "-with-dag", str(execution_dir / FileNames.DAG.value),
-            "-resume"
+            "-with-dag", str(execution_dir / FileNames.DAG.value)
         ]
         
         with open(log_file, 'w') as log:
@@ -62,7 +61,9 @@ class NextflowExecutorService:
                 cmd,
                 stdout=log,
                 stderr=subprocess.STDOUT,
-                cwd=str(self.workflows_dir.parent)
+                # Nextflow keeps its session cache under the launch directory.
+                # Isolating it prevents concurrent pipelines from sharing a lock.
+                cwd=str(execution_dir)
             )
         
         metadata = {
@@ -125,8 +126,7 @@ class NextflowExecutorService:
             "-with-report", str(execution_dir / FileNames.REPORT.value),
             "-with-trace", str(execution_dir / FileNames.TRACE.value),
             "-with-timeline", str(execution_dir / FileNames.TIMELINE.value),
-            "-with-dag", str(execution_dir / FileNames.DAG.value),
-            "-resume"
+            "-with-dag", str(execution_dir / FileNames.DAG.value)
         ]
         
         with open(log_file, 'w') as log:
@@ -134,7 +134,9 @@ class NextflowExecutorService:
                 cmd,
                 stdout=log,
                 stderr=subprocess.STDOUT,
-                cwd=str(self.workflows_dir.parent)
+                # Annotation and genome runs can start simultaneously, so each
+                # execution needs its own Nextflow launch/session directory.
+                cwd=str(execution_dir)
             )
         
         metadata = {
@@ -403,4 +405,3 @@ class NextflowExecutorService:
     def get_execution_report_path(self, execution_id: str) -> Optional[Path]:
         report_path = self.work_dir / execution_id / FileNames.REPORT.value
         return report_path if report_path.exists() else None
-
