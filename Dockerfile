@@ -1,9 +1,12 @@
 FROM python:3.11-slim
 
+ARG NEXTFLOW_VERSION=26.04.6
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    NXF_VER=${NEXTFLOW_VERSION}
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -16,7 +19,7 @@ RUN apt-get update \
         genometools \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -s https://get.nextflow.io | bash \
+RUN curl -fsSL https://get.nextflow.io | bash \
     && mv nextflow /usr/local/bin/ \
     && chmod +x /usr/local/bin/nextflow \
     && nextflow -version
