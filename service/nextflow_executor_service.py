@@ -23,6 +23,72 @@ class NextflowExecutorService:
         self.workflows_dir = Path(__file__).parent.parent / "workflows"
         self.config_file = Path(__file__).parent.parent / FileNames.NEXTFLOW_CONFIG.value
         self.executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="nextflow-watcher")
+
+    def execute_import_validation(
+        self,
+        import_id: str,
+        validation_type: str,
+        input_local_path: str,
+        fai_local_path: Optional[str] = None,
+        profile: str = "standard"
+    ) -> str:
+        execution_id = str(uuid.uuid4())
+        execution_dir = self.work_dir / execution_id
+        execution_output_dir = self.output_dir / execution_id
+        execution_dir.mkdir(exist_ok=True)
+        execution_output_dir.mkdir(exist_ok=True)
+        log_file = execution_dir / FileNames.NEXTFLOW_LOG.value
+
+        cmd = [
+            "nextflow",
+            "run",
+            str(self.workflows_dir / FileNames.IMPORT_VALIDATION_WORKFLOW.value),
+            "-c", str(self.config_file),
+            "-profile", profile,
+            "-work-dir", str(execution_dir / "work"),
+            "--validation_type", validation_type,
+            "--input_file", input_local_path,
+            "--import_id", import_id,
+            "--output_dir", str(execution_output_dir),
+            "-with-report", str(execution_dir / FileNames.REPORT.value),
+            "-with-trace", str(execution_dir / FileNames.TRACE.value),
+            "-with-timeline", str(execution_dir / FileNames.TIMELINE.value),
+            "-with-dag", str(execution_dir / FileNames.DAG.value)
+        ]
+        if fai_local_path:
+            cmd.extend(["--fai_file", fai_local_path])
+
+        with open(log_file, "w") as log:
+            process = subprocess.Popen(
+                cmd,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                cwd=str(execution_dir)
+            )
+
+        metadata = {
+            "execution_id": execution_id,
+            "pid": process.pid,
+            "import_id": import_id,
+            "validation_type": validation_type,
+            "status": ExecutionStatus.RUNNING.value,
+            "progress": 0,
+            "profile": profile,
+            "log_file": str(log_file),
+            "output_dir": str(execution_output_dir),
+            "started_at": datetime.utcnow().isoformat(),
+            "completed_at": None,
+            "error_message": None
+        }
+        with open(execution_dir / FileNames.METADATA.value, "w") as metadata_file:
+            json.dump(metadata, metadata_file, indent=2)
+        self.executor.submit(
+            self._manage_execution_lifecycle,
+            process,
+            execution_id,
+            execution_dir
+        )
+        return execution_id
     
     def execute_genome_indexing(
         self, 
@@ -134,8 +200,6 @@ class NextflowExecutorService:
                 cmd,
                 stdout=log,
                 stderr=subprocess.STDOUT,
-                # Annotation and genome runs can start simultaneously, so each
-                # execution needs its own Nextflow launch/session directory.
                 cwd=str(execution_dir)
             )
         
@@ -324,6 +388,10 @@ class NextflowExecutorService:
         metadata["total_tasks"] = progress_info["total"]
     
     def _update_completed_files(self, metadata: Dict) -> None:
+        if metadata.get("validation_type"):
+            report_path = Path(metadata["output_dir"]) / "validation.json"
+            metadata["validation_report"] = str(report_path) if report_path.exists() else None
+            return
         if metadata.get("annotation_id"):
             metadata["generated_files"] = self._get_annotation_generated_files(
                 Path(metadata["output_dir"]),

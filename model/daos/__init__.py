@@ -8,6 +8,7 @@ from model.daos.organism import Organism
 from model.daos.source import Source
 from model.daos.user import User
 from model.daos.processing_execution import ProcessingExecution
+from model.daos.data_import import DataImport
 
 __all__ = [
     "Annotation",
@@ -19,6 +20,6 @@ __all__ = [
     "Organism",
     "Source",
     "User",
-    "ProcessingExecution"
+    "ProcessingExecution",
+    "DataImport"
 ]
-

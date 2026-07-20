@@ -1,4 +1,6 @@
 import os
+import gzip
+import shutil
 import logging
 from pathlib import Path
 from typing import Dict
@@ -224,9 +226,17 @@ class AnnotationProcessingService:
     
     def _download_gff3_file(self, minio_path: str, local_path: str) -> None:
         gff3_data = self.minio_service.download_file(minio_path)
-        with open(local_path, 'wb') as f:
-            for chunk in gff3_data.stream(amt=DOWNLOAD_CHUNK_SIZE_BYTES):
-                f.write(chunk)
+        try:
+            with open(local_path, 'wb') as output_file:
+                if minio_path.lower().endswith('.gz'):
+                    with gzip.GzipFile(fileobj=gff3_data, mode='rb') as compressed_file:
+                        shutil.copyfileobj(compressed_file, output_file, DOWNLOAD_CHUNK_SIZE_BYTES)
+                else:
+                    for chunk in gff3_data.stream(amt=DOWNLOAD_CHUNK_SIZE_BYTES):
+                        output_file.write(chunk)
+        finally:
+            gff3_data.close()
+            gff3_data.release_conn()
     
     def _get_temp_gff3_path(self, annotation_id: str) -> str:
         return str(self.temp_dir / f"{annotation_id}.gff3")
@@ -243,4 +253,3 @@ class AnnotationProcessingService:
     
     def _get_annotation_file_type(self, file_type: str) -> str:
         return ANNOTATION_FILE_TYPE_MAPPING.get(file_type, UNKNOWN_FILE_TYPE)
-

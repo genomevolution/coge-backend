@@ -53,7 +53,7 @@ class GenomeController:
       execution_id = None
       processing_status = None
       
-      if file.filename.endswith(('.fa', '.fasta', '.fna')) and self.genome_processing_service:
+      if self.genome_processing_service:
         try:
           execution_id = self.genome_processing_service.start_genome_indexing(
             organism_id=organismId,

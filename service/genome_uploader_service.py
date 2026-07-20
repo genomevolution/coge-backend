@@ -6,41 +6,53 @@ from model.exceptions.invalid_file_type import InvalidFileTypeException
 from model.exceptions.file_url_generation import FileUrlGenerationException
 from model.dto.file_upload_result import FileUploadResult
 
-class GenomeUploaderService:    
+
+GENOME_ALLOWED_EXTENSIONS = ('.fa', '.fa.gz')
+GENOME_CONTENT_TYPE = "application/octet-stream"
+GENOME_FILE_TYPE = "FASTA"
+GENOME_UPLOAD_RESULT_TYPE = "genome"
+FILE_UPLOAD_SUCCESS_MESSAGE = "File uploaded successfully"
+INVALID_GENOME_FILENAME_TYPE = "genome files with valid filename"
+
+
+class GenomeUploaderService:
     def __init__(self, minioService: MinIOService, fileRepository: FileRepository):
         self.minioService = minioService
         self.fileRepository = fileRepository
-        self.allowed_extensions = ['.fa', '.fasta', '.fna', '.gz', '.gzi', '.fai']
     
     def _validate_file_extension(self, filename: str) -> None:
         if not filename:
-            raise InvalidFileTypeException("", ["genome files with valid filename"])
+            raise InvalidFileTypeException("", [INVALID_GENOME_FILENAME_TYPE])
         
-        file_extension = '.' + filename.split('.')[-1].lower()
-        if file_extension not in self.allowed_extensions:
+        normalized_filename = filename.lower()
+        if not any(normalized_filename.endswith(extension) for extension in GENOME_ALLOWED_EXTENSIONS):
             raise InvalidFileTypeException(
-                file_extension, 
-                self.allowed_extensions
+                filename,
+                list(GENOME_ALLOWED_EXTENSIONS)
             )
     
     def _upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
-        file_path = self.minioService.generate_file_path(organism_id, "genome", file.filename)
+        file_path = self.minioService.generate_genome_file_path(
+            organism_id,
+            file.filename
+        )
         
         file_data = file.file.read()
         file_size = len(file_data)
         file.file.seek(0)
         
+        content_type = file.content_type or GENOME_CONTENT_TYPE
         self.minioService.upload_file(
             file_data=file.file,
             file_name=file_path,
-            content_type=file.content_type or "application/octet-stream",
+            content_type=content_type,
             file_size=file_size
         )
         
         file_metadata = {   
             "original_filename": file.filename,
             "file_size": file_size,
-            "content_type": file.content_type or "application/octet-stream",
+            "content_type": content_type,
             "organism_id": organism_id
         }
         file_record = self.fileRepository.create_file(file_path, file_metadata)
@@ -48,16 +60,16 @@ class GenomeUploaderService:
         self.fileRepository.create_genome_file_link(
             file_record.id, 
             genome_id, 
-            "FASTA"
+            GENOME_FILE_TYPE
         )
         
         file_url = self.minioService.get_file_url(file_path)
         
         return FileUploadResult(
-            message="File uploaded successfully",
+            message=FILE_UPLOAD_SUCCESS_MESSAGE,
             file_path=file_path,
             file_url=file_url,
-            file_type="genome"
+            file_type=GENOME_UPLOAD_RESULT_TYPE
         )
     
     def upload_genome_file(self, organism_id: str, genome_id: str, file: UploadFile) -> FileUploadResult:
@@ -65,7 +77,7 @@ class GenomeUploaderService:
         
         try:
             return self._upload_genome_file(organism_id, genome_id, file)
-        except (FileUploadException, FileUrlGenerationException) as e:
-            raise e
-        except Exception as e:
-            raise FileUploadException(file.filename, str(e))
+        except (FileUploadException, FileUrlGenerationException):
+            raise
+        except Exception as error:
+            raise FileUploadException(file.filename, str(error)) from error

@@ -104,7 +104,12 @@ class FakeSourceRepository:
 
 
 class FakeUploaderService:
-  pass
+  def __init__(self):
+    self.uploaded = None
+
+  def upload_annotation_file(self, genome_id, annotation_id, file):
+    self.uploaded = (genome_id, annotation_id, file)
+    return "upload-result"
 
 
 def test_create_organism_with_valid_fields():
@@ -183,7 +188,7 @@ def test_create_genome_rejects_missing_organism():
 
 def test_create_annotation_for_existing_genome():
   repository = FakeAnnotationRepository()
-  service = AnnotationService(None, None, repository)
+  service = AnnotationService(repository, FakeUploaderService())
 
   result = service.create_annotation("genome-1", {
     "name": "v1",
@@ -198,7 +203,10 @@ def test_create_annotation_for_existing_genome():
 
 
 def test_create_annotation_rejects_missing_genome():
-  service = AnnotationService(None, None, FakeAnnotationRepository(genome_exists=False))
+  service = AnnotationService(
+    FakeAnnotationRepository(genome_exists=False),
+    FakeUploaderService()
+  )
 
   with pytest.raises(EntityNotFoundException):
     service.create_annotation("missing-genome", {
@@ -207,6 +215,21 @@ def test_create_annotation_rejects_missing_genome():
       "public": True,
       "primaryAnnotation": False
     })
+
+
+def test_annotation_upload_is_delegated_to_uploader_service():
+  uploader = FakeUploaderService()
+  service = AnnotationService(FakeAnnotationRepository(), uploader)
+  uploaded_file = object()
+
+  result = service.upload_annotation_file(
+    "genome-1",
+    "annotation-1",
+    uploaded_file
+  )
+
+  assert result == "upload-result"
+  assert uploader.uploaded == ("genome-1", "annotation-1", uploaded_file)
 
 
 def test_list_sources():

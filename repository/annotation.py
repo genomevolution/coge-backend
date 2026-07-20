@@ -41,9 +41,33 @@ class AnnotationRepository:
     session = self.db.get_session()
 
     try:
-      genome = session.query(Genome).filter(Genome.id == genome_id).first()
+      # Serialize annotation creation for the same genome so two concurrent
+      # first annotations cannot both make the decision independently.
+      genome = (
+        session.query(Genome)
+        .filter(Genome.id == genome_id)
+        .with_for_update()
+        .first()
+      )
       if genome is None:
         raise EntityNotFoundException("Genome not found")
+
+      has_annotations = (
+        session.query(Annotation.id)
+        .filter(Annotation.fk_genome == genome_id)
+        .first()
+        is not None
+      )
+      effective_primary_annotation = primary_annotation or not has_annotations
+
+      if effective_primary_annotation and has_annotations:
+        session.query(Annotation).filter(
+          Annotation.fk_genome == genome_id,
+          Annotation.primary_annotation.is_(True)
+        ).update(
+          {Annotation.primary_annotation: False},
+          synchronize_session=False
+        )
 
       annotation = Annotation(
         id=str(uuid.uuid4()),
@@ -52,7 +76,7 @@ class AnnotationRepository:
         name=name,
         description=description,
         public=public,
-        primary_annotation=primary_annotation
+        primary_annotation=effective_primary_annotation
       )
 
       session.add(annotation)
