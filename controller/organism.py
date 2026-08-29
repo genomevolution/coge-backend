@@ -1,4 +1,5 @@
 from service.organism import OrganismService
+from model.exceptions.duplicate_entity import DuplicateEntityException
 from model.exceptions.entity_not_found import EntityNotFoundException
 from fastapi import HTTPException
 
@@ -16,5 +17,15 @@ class OrganismController:
       return self.organismService.get_organism_by_id(id)
     except EntityNotFoundException:
       raise HTTPException(status_code=404, detail="Organism not found")
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+  def create_organism(self, data: dict):
+    try:
+      return self.organismService.create_organism(data)
+    except DuplicateEntityException as e:
+      raise HTTPException(status_code=409, detail=str(e))
+    except ValueError as e:
+      raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
       raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

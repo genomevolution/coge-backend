@@ -7,7 +7,8 @@ from model.daos import (
     GenomeFile,
     Organism,
     Source,
-    User
+    User,
+    DataImport
 )
 
 __all__ = [
@@ -19,6 +20,6 @@ __all__ = [
     "GenomeFile",
     "Organism",
     "Source",
-    "User"
+    "User",
+    "DataImport"
 ]
-
