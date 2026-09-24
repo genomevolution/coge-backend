@@ -1,8 +1,11 @@
+import json
 from unittest.mock import MagicMock
+
+import pytest
 
 from service.data_import import DataImportService
 from service.import_coordinator import ImportCoordinatorService
-from service.import_status import ImportComponent, ImportStatus
+from service.import_status import ImportComponent, ImportMode, ImportStatus
 
 
 class FakeImport:
@@ -111,6 +114,7 @@ def test_removing_invalid_annotation_resumes_publication():
   service = DataImportService(
     repository,
     MagicMock(),
+    MagicMock(),
     minio_service,
     MagicMock()
   )
@@ -135,6 +139,7 @@ def test_cancel_stops_execution_and_cleans_staging():
   service = DataImportService(
     repository,
     MagicMock(),
+    MagicMock(),
     minio_service,
     executor
   )
@@ -144,3 +149,129 @@ def test_cancel_stops_execution_and_cleans_staging():
   executor.cancel_execution.assert_called_once_with("execution-1")
   minio_service.delete_prefix.assert_called_once_with("staging/imports/import-1/")
   assert data_import.status == ImportStatus.CANCELLED.value
+
+
+def test_existing_organism_must_be_selected_instead_of_created_again():
+  existing_organism = MagicMock()
+  existing_organism.id = "organism-1"
+  existing_organism.to_dict.return_value = {
+    "id": "organism-1",
+    "name": "UN0010",
+    "taxId": "5660",
+    "speciesName": "Leishmania braziliensis",
+    "metadata": {"host": "Homo sapiens"}
+  }
+  organism_repository = MagicMock()
+  organism_repository.find_organism_by_name_and_tax_id.return_value = existing_organism
+  taxonomy_repository = MagicMock()
+  taxonomy_repository.find_by_tax_id.return_value = MagicMock(
+    scientific_name="Leishmania braziliensis"
+  )
+  service = DataImportService(
+    MagicMock(),
+    organism_repository,
+    taxonomy_repository,
+    MagicMock(),
+    MagicMock()
+  )
+  fasta = MagicMock(filename="genome.fa")
+
+  with pytest.raises(ValueError, match="already exists.*search"):
+    service._parse_and_validate_payload(json.dumps({
+      "mode": ImportMode.CREATE_ORGANISM.value,
+      "organism": {
+        "name": "UN0010",
+        "taxId": "05660",
+        "speciesName": "Mistyped species"
+      },
+      "genome": {
+        "name": "v2",
+        "description": "New sequencing",
+        "accessionId": "GCA_2",
+        "sourceId": "source-1"
+      }
+    }), fasta, None)
+
+  organism_repository.find_organism_by_name_and_tax_id.assert_called_once_with(
+    "UN0010",
+    "5660"
+  )
+  organism_repository.get_organism_by_id.assert_not_called()
+
+
+def test_new_tax_id_keeps_create_organism_mode():
+  organism_repository = MagicMock()
+  organism_repository.find_organism_by_name_and_tax_id.return_value = None
+  taxonomy_repository = MagicMock()
+  taxonomy_repository.find_by_tax_id.return_value = None
+  service = DataImportService(
+    MagicMock(),
+    organism_repository,
+    taxonomy_repository,
+    MagicMock(),
+    MagicMock()
+  )
+
+  payload = service._parse_and_validate_payload(json.dumps({
+    "mode": ImportMode.CREATE_ORGANISM.value,
+    "organism": {
+      "name": "UN0010",
+      "taxId": "05660",
+      "speciesName": "Leishmania braziliensis"
+    }
+  }), None, None)
+
+  assert payload["mode"] == ImportMode.CREATE_ORGANISM.value
+  assert payload["organism"]["taxId"] == "5660"
+
+
+def test_existing_tax_id_without_genome_is_rejected():
+  organism_repository = MagicMock()
+  organism_repository.find_organism_by_name_and_tax_id.return_value = MagicMock(
+    id="organism-1"
+  )
+  service = DataImportService(
+    MagicMock(),
+    organism_repository,
+    MagicMock(),
+    MagicMock(),
+    MagicMock()
+  )
+
+  with pytest.raises(ValueError, match="already exists.*search"):
+    service._parse_and_validate_payload(json.dumps({
+      "mode": ImportMode.CREATE_ORGANISM.value,
+      "organism": {
+        "name": "UN0010",
+        "taxId": "5660",
+        "speciesName": "Leishmania braziliensis"
+      }
+    }), None, None)
+
+
+def test_same_tax_id_with_different_organism_name_creates_new_organism():
+  organism_repository = MagicMock()
+  organism_repository.find_organism_by_name_and_tax_id.return_value = None
+  taxonomy_repository = MagicMock()
+  taxonomy_repository.find_by_tax_id.return_value = MagicMock(
+    scientific_name="Leishmania braziliensis"
+  )
+  service = DataImportService(
+    MagicMock(),
+    organism_repository,
+    taxonomy_repository,
+    MagicMock(),
+    MagicMock()
+  )
+
+  payload = service._parse_and_validate_payload(json.dumps({
+    "mode": ImportMode.CREATE_ORGANISM.value,
+    "organism": {
+      "name": "ANOTHER_ISOLATE",
+      "taxId": "5660",
+      "speciesName": "Typo braziliensis"
+    }
+  }), None, None)
+
+  assert payload["mode"] == ImportMode.CREATE_ORGANISM.value
+  assert payload["organism"]["speciesName"] == "Leishmania braziliensis"

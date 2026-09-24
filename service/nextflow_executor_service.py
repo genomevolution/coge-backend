@@ -3,6 +3,7 @@ import uuid
 import json
 import os
 import signal
+import shutil
 import logging
 from pathlib import Path
 from typing import Dict, Optional
@@ -232,6 +233,64 @@ class NextflowExecutorService:
         logger.info(f"Started annotation processing execution {execution_id} with PID {process.pid}")
         
         return execution_id
+
+    def execute_blast_search(
+        self,
+        job_id: str,
+        query_local_path: str,
+        database_manifest_path: str,
+        output_dir: str,
+        max_target_seqs: int,
+        evalue: float,
+        profile: str = "standard",
+    ) -> str:
+        execution_id = str(uuid.uuid4())
+        execution_dir = self.work_dir / execution_id
+        execution_output_dir = Path(output_dir)
+        execution_dir.mkdir(exist_ok=True)
+        execution_output_dir.mkdir(parents=True, exist_ok=True)
+        log_file = execution_dir / FileNames.NEXTFLOW_LOG.value
+        cmd = [
+            "nextflow",
+            "run",
+            str(self.workflows_dir / FileNames.BLAST_SEARCH_WORKFLOW.value),
+            "-c", str(self.config_file),
+            "-profile", profile,
+            "-work-dir", str(execution_dir / "work"),
+            "--query_file", query_local_path,
+            "--database_manifest", database_manifest_path,
+            "--output_dir", str(execution_output_dir),
+            "--max_target_seqs", str(max_target_seqs),
+            "--evalue", str(evalue),
+            "-with-report", str(execution_dir / FileNames.REPORT.value),
+            "-with-trace", str(execution_dir / FileNames.TRACE.value),
+            "-with-timeline", str(execution_dir / FileNames.TIMELINE.value),
+            "-with-dag", str(execution_dir / FileNames.DAG.value),
+        ]
+        with open(log_file, "w") as log:
+            process = subprocess.Popen(
+                cmd,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                cwd=str(execution_dir),
+            )
+        metadata = {
+            "execution_id": execution_id,
+            "pid": process.pid,
+            "blast_job_id": job_id,
+            "status": ExecutionStatus.RUNNING.value,
+            "progress": 0,
+            "profile": profile,
+            "log_file": str(log_file),
+            "output_dir": str(execution_output_dir),
+            "started_at": datetime.utcnow().isoformat(),
+            "completed_at": None,
+            "error_message": None,
+        }
+        with open(execution_dir / FileNames.METADATA.value, "w") as metadata_file:
+            json.dump(metadata, metadata_file, indent=2)
+        self.executor.submit(self._manage_execution_lifecycle, process, execution_id, execution_dir)
+        return execution_id
     
     def get_execution_status(self, execution_id: str) -> Dict:
         execution_dir = self.work_dir / execution_id
@@ -278,6 +337,10 @@ class NextflowExecutorService:
                 return False
         
         return False
+
+    def cleanup_execution(self, execution_id: str) -> None:
+        """Remove transient Nextflow metadata for a completed BLAST job."""
+        shutil.rmtree(self.work_dir / execution_id, ignore_errors=True)
     
     def _is_process_running(self, pid: int) -> bool:
         try:
@@ -331,9 +394,12 @@ class NextflowExecutorService:
                     metadata["status"] = ExecutionStatus.COMPLETED.value
                 elif "ERROR ~" in log_content or "Execution status: FAILED" in log_content:
                     metadata["status"] = ExecutionStatus.FAILED.value
-                    error_lines = [l for l in log_content.split('\n') if 'ERROR' in l or 'Caused by:' in l]
+                    # Keep the tail of the Nextflow log: the command/work-directory
+                    # details usually appear after the first ERROR line and are much
+                    # more useful to the API client than the two-line summary alone.
+                    error_lines = [line.strip() for line in log_content.splitlines() if line.strip()]
                     if error_lines:
-                        metadata["error_message"] = '\n'.join(error_lines[-5:])
+                        metadata["error_message"] = '\n'.join(error_lines[-12:])
                 else:
                     if returncode == 0:
                         metadata["status"] = ExecutionStatus.COMPLETED.value
@@ -388,6 +454,12 @@ class NextflowExecutorService:
         metadata["total_tasks"] = progress_info["total"]
     
     def _update_completed_files(self, metadata: Dict) -> None:
+        if metadata.get("blast_job_id"):
+            output_path = Path(metadata["output_dir"]) / "blast_results.tsv"
+            metadata["generated_files"] = {
+                "blast_results": str(output_path) if output_path.exists() else None
+            }
+            return
         if metadata.get("validation_type"):
             report_path = Path(metadata["output_dir"]) / "validation.json"
             metadata["validation_report"] = str(report_path) if report_path.exists() else None

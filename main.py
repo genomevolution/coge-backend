@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Response, UploadFile, File, Form, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from repository.db_config import DBConfig
@@ -29,9 +29,16 @@ from repository.source import SourceRepository
 from controller.data_import import DataImportController
 from repository.data_import import DataImportRepository
 from repository.import_publisher import ImportPublisherRepository
+from repository.taxonomy import TaxonomyRepository
 from service.data_import import DataImportService
 from service.import_coordinator import ImportCoordinatorService
 from service.import_monitor_service import ImportMonitorService
+from service.taxonomy import TaxonomyService
+from controller.taxonomy import TaxonomyController
+from repository.blast import BlastRepository
+from service.blast import BlastService, BlastCoordinatorService
+from service.blast_monitor_service import BlastMonitorService
+from controller.blast import BlastController
 from config import config
 
 @asynccontextmanager
@@ -40,10 +47,12 @@ async def lifespan(app: FastAPI):
     await genome_monitor_service.start()
     await annotation_monitor_service.start()
     await import_monitor_service.start()
+    await blast_monitor_service.start()
     yield
     await import_monitor_service.stop()
     await genome_monitor_service.stop()
     await annotation_monitor_service.stop()
+    await blast_monitor_service.stop()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -101,7 +110,19 @@ annotationUploaderService = AnnotationUploaderService(
 annotationService = AnnotationService(annotationRepository, annotationUploaderService)
 genomeService = GenomeService(GenomeRepository(db), genomeUploaderService)
 genomeController = GenomeController(genomeService, minioService, genomeProcessingService)
-organismController = OrganismController(OrganismService(OrganismRepository(db)))
+organismRepository = OrganismRepository(db)
+taxonomyRepository = TaxonomyRepository(db)
+organismController = OrganismController(
+    OrganismService(organismRepository, taxonomyRepository)
+)
+taxonomyController = TaxonomyController(TaxonomyService(taxonomyRepository))
+blastRepository = BlastRepository(db)
+blastCoordinator = BlastCoordinatorService(
+    blastRepository,
+    minioService,
+    nextflowExecutor,
+)
+blastController = BlastController(BlastService(blastRepository))
 annotationController = AnnotationController(annotationService, annotationProcessingService)
 sourceController = SourceController(SourceService(SourceRepository(db)))
 dataImportRepository = DataImportRepository(db)
@@ -114,7 +135,8 @@ importCoordinatorService = ImportCoordinatorService(
 )
 dataImportService = DataImportService(
     dataImportRepository,
-    OrganismRepository(db),
+    organismRepository,
+    taxonomyRepository,
     minioService,
     nextflowExecutor
 )
@@ -124,11 +146,53 @@ import_monitor_service = ImportMonitorService(
     importCoordinatorService,
     check_interval_seconds=2
 )
+blast_monitor_service = BlastMonitorService(blastRepository, blastCoordinator)
 
 @app.get("/organisms/")
 def getOrganismsListAlchemy(response: Response, previous: str = None, next: str = None):
     response.headers["Content-Type"] = "application/json"
     return organismController.get_organisms(previous, next)
+
+@app.get("/taxonomy/")
+def searchTaxonomy(response: Response, query: str, limit: int = 8):
+    response.headers["Content-Type"] = "application/json"
+    return taxonomyController.search(query, limit)
+
+@app.get("/taxonomy/{taxId}")
+def getTaxonomyByTaxId(response: Response, taxId: str):
+    response.headers["Content-Type"] = "application/json"
+    return taxonomyController.get_by_tax_id(taxId)
+
+@app.get("/blast/genomes")
+def getBlastGenomes(
+    response: Response,
+    query: str = None,
+    taxId: str = None,
+    limit: int = 50,
+    offset: int = 0,
+):
+    response.headers["Content-Type"] = "application/json"
+    return blastController.list_genomes(query, taxId, limit, offset)
+
+@app.post("/blast/jobs", status_code=202)
+def createBlastJob(payload: dict):
+    return blastController.create_job(payload)
+
+@app.get("/blast/jobs/{jobId}")
+def getBlastJob(jobId: str, includeResults: bool = False):
+    return blastController.get_job(jobId, include_results=includeResults)
+
+@app.get("/blast/jobs/{jobId}/results")
+def getBlastJobResults(jobId: str):
+    return blastController.get_job(jobId, include_results=True)
+
+@app.get("/blast/jobs/{jobId}/download")
+def downloadBlastResults(jobId: str):
+    return PlainTextResponse(
+        blastController.get_results_tsv(jobId),
+        media_type="text/tab-separated-values",
+        headers={"Content-Disposition": f"attachment; filename=blast-{jobId}.tsv"},
+    )
 
 @app.get("/organisms/{organismId}")
 def getOrganism(response: Response, organismId: str):

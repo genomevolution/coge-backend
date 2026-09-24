@@ -86,7 +86,7 @@ class OrganismRepository:
     finally:
       session.close()
 
-  def find_organism_by_identity(self, name: str, tax_id: str, species_name: str):
+  def find_organism_by_name_and_tax_id(self, name: str, tax_id: str):
     session = self.db.get_session()
 
     try:
@@ -94,8 +94,7 @@ class OrganismRepository:
         session.query(Organism)
         .filter(
           Organism.tax_id == tax_id,
-          func.lower(Organism.name) == name.lower(),
-          func.lower(Organism.species_name) == species_name.lower()
+          func.lower(Organism.name) == name.lower()
         )
         .first()
       )

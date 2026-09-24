@@ -1,4 +1,5 @@
 import pytest
+from types import SimpleNamespace
 
 from model.exceptions.duplicate_entity import DuplicateEntityException
 from model.exceptions.entity_not_found import EntityNotFoundException
@@ -22,7 +23,7 @@ class FakeOrganismRepository:
     self.created = None
     self.existing_organism = existing_organism
 
-  def find_organism_by_identity(self, name, tax_id, species_name):
+  def find_organism_by_name_and_tax_id(self, name, tax_id):
     return self.existing_organism
 
   def create_organism(self, name, tax_id, species_name, metadata=None):
@@ -39,6 +40,23 @@ class FakeOrganismRepository:
       speciesName=species_name,
       metadata=metadata
     )
+
+
+class FakeTaxonomyRepository:
+  def __init__(self, scientific_name=None):
+    self.taxonomy = (
+      SimpleNamespace(scientific_name=scientific_name)
+      if scientific_name
+      else None
+    )
+    self.created = None
+
+  def find_by_tax_id(self, tax_id):
+    return self.taxonomy
+
+  def create(self, tax_id, scientific_name):
+    self.created = {"tax_id": tax_id, "scientific_name": scientific_name}
+    return SimpleNamespace(tax_id=tax_id, scientific_name=scientific_name)
 
 
 class FakeGenomeRepository:
@@ -114,7 +132,8 @@ class FakeUploaderService:
 
 def test_create_organism_with_valid_fields():
   repository = FakeOrganismRepository()
-  service = OrganismService(repository)
+  taxonomy_repository = FakeTaxonomyRepository()
+  service = OrganismService(repository, taxonomy_repository)
 
   result = service.create_organism({
     "name": "LL0772",
@@ -126,11 +145,18 @@ def test_create_organism_with_valid_fields():
   assert result["id"] == "organism-1"
   assert repository.created["name"] == "LL0772"
   assert repository.created["metadata"] == {"host": "Homo sapiens"}
+  assert taxonomy_repository.created == {
+    "tax_id": "5679",
+    "scientific_name": "Leishmania panamensis"
+  }
 
 
 @pytest.mark.parametrize("missing_field", ["name", "taxId", "speciesName"])
 def test_create_organism_rejects_missing_required_fields(missing_field):
-  service = OrganismService(FakeOrganismRepository())
+  service = OrganismService(
+    FakeOrganismRepository(),
+    FakeTaxonomyRepository()
+  )
   payload = {
     "name": "LL0772",
     "taxId": "5679",
@@ -144,7 +170,7 @@ def test_create_organism_rejects_missing_required_fields(missing_field):
 
 def test_create_organism_rejects_duplicate_identity():
   repository = FakeOrganismRepository(existing_organism=FakeEntity(id="organism-1"))
-  service = OrganismService(repository)
+  service = OrganismService(repository, FakeTaxonomyRepository())
 
   with pytest.raises(DuplicateEntityException):
     service.create_organism({
@@ -154,6 +180,37 @@ def test_create_organism_rejects_duplicate_identity():
     })
 
   assert repository.created is None
+
+
+def test_existing_taxonomy_replaces_submitted_species_name():
+  repository = FakeOrganismRepository()
+  taxonomy_repository = FakeTaxonomyRepository("Leishmania braziliensis")
+  service = OrganismService(repository, taxonomy_repository)
+
+  service.create_organism({
+    "name": "UN0010",
+    "taxId": "05660",
+    "speciesName": "Mistyped species"
+  })
+
+  assert repository.created["tax_id"] == "5660"
+  assert repository.created["species_name"] == "Leishmania braziliensis"
+  assert taxonomy_repository.created is None
+
+
+@pytest.mark.parametrize("tax_id", ["0", "NCBI:5660", "-1"])
+def test_create_organism_rejects_invalid_taxonomy_id(tax_id):
+  service = OrganismService(
+    FakeOrganismRepository(),
+    FakeTaxonomyRepository()
+  )
+
+  with pytest.raises(ValueError, match="positive integer"):
+    service.create_organism({
+      "name": "UN0010",
+      "taxId": tax_id,
+      "speciesName": "Leishmania braziliensis"
+    })
 
 
 def test_create_genome_for_existing_organism():

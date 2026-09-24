@@ -8,7 +8,9 @@ from model.daos import (
     Organism,
     Source,
     User,
-    DataImport
+    DataImport,
+    Taxonomy,
+    BlastJob
 )
 
 __all__ = [
@@ -21,5 +23,7 @@ __all__ = [
     "Organism",
     "Source",
     "User",
-    "DataImport"
+    "DataImport",
+    "Taxonomy",
+    "BlastJob"
 ]

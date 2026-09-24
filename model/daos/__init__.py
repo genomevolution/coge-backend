@@ -9,6 +9,8 @@ from model.daos.source import Source
 from model.daos.user import User
 from model.daos.processing_execution import ProcessingExecution
 from model.daos.data_import import DataImport
+from model.daos.taxonomy import Taxonomy
+from model.daos.blast_job import BlastJob
 
 __all__ = [
     "Annotation",
@@ -21,5 +23,7 @@ __all__ = [
     "Source",
     "User",
     "ProcessingExecution",
-    "DataImport"
+    "DataImport",
+    "Taxonomy",
+    "BlastJob"
 ]

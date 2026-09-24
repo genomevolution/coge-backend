@@ -17,6 +17,7 @@ RUN apt-get update \
         openjdk-21-jre-headless \
         procps \
         genometools \
+        ncbi-blast+ \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://get.nextflow.io | bash \
@@ -33,7 +34,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN adduser --disabled-password --gecos '' appuser \
-    && chown -R appuser:appuser /app
+    && mkdir -p /data/blast_databases /data/blast_jobs \
+    && chown -R appuser:appuser /app /data/blast_databases /data/blast_jobs
 USER appuser
 
 EXPOSE 8000

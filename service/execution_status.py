@@ -11,6 +11,7 @@ class ExecutionStatus(str, Enum):
 class ExecutionType(str, Enum):
     GENOME_INDEXING = 'GENOME_INDEXING'
     ANNOTATION_PROCESSING = 'ANNOTATION_PROCESSING'
+    BLAST_SEARCH = 'BLAST_SEARCH'
 
 class FileNames(str, Enum):
     NEXTFLOW_LOG = 'nextflow.log'
@@ -22,6 +23,7 @@ class FileNames(str, Enum):
     GENOME_INDEXING_WORKFLOW = 'genome_indexing.nf'
     ANNOTATION_PROCESSING_WORKFLOW = 'annotation_processing.nf'
     IMPORT_VALIDATION_WORKFLOW = 'import_validation.nf'
+    BLAST_SEARCH_WORKFLOW = 'blast_search.nf'
     NEXTFLOW_CONFIG = 'nextflow.config'
     FASTA_GZ_EXTENSION = '.fa.gz'
     GZI_EXTENSION = '.fa.gz.gzi'

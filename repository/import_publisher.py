@@ -1,10 +1,19 @@
 from datetime import datetime
 import uuid
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 
-from model import Annotation, AnnotationFile, DataImport, File, Genome, GenomeFile, Organism, Source
-from model.exceptions.duplicate_entity import DuplicateEntityException
+from model import (
+    Annotation,
+    AnnotationFile,
+    DataImport,
+    File,
+    Genome,
+    GenomeFile,
+    Organism,
+    Source,
+    Taxonomy
+)
 from model.exceptions.entity_not_found import EntityNotFoundException
 from repository.db import DB
 from service.import_status import ImportMode, ImportStatus
@@ -68,21 +77,35 @@ class ImportPublisherRepository:
             return organism
 
         organism_payload = payload["organism"]
-        duplicate = session.query(Organism.id).filter(
-            Organism.tax_id == organism_payload["taxId"],
-            func.lower(Organism.name) == organism_payload["name"].lower(),
-            func.lower(Organism.species_name) == organism_payload["speciesName"].lower()
+        tax_id = organism_payload["taxId"]
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:tax_id))"),
+            {"tax_id": tax_id}
+        )
+        taxonomy = session.query(Taxonomy).filter(
+            Taxonomy.tax_id == tax_id
         ).first()
-        if duplicate is not None:
-            raise DuplicateEntityException(
-                "An organism with the same name, taxonomy ID, and species already exists"
+        if taxonomy is None:
+            taxonomy = Taxonomy(
+                tax_id=tax_id,
+                scientific_name=organism_payload["speciesName"],
+                created_at=now
             )
+            session.add(taxonomy)
+            session.flush()
+
+        existing_organism = session.query(Organism).filter(
+            Organism.tax_id == tax_id,
+            func.lower(Organism.name) == organism_payload["name"].lower()
+        ).first()
+        if existing_organism is not None:
+            return existing_organism
 
         organism = Organism(
             id=data_import.planned_organism_id,
             name=organism_payload["name"],
-            tax_id=organism_payload["taxId"],
-            species_name=organism_payload["speciesName"],
+            tax_id=tax_id,
+            species_name=taxonomy.scientific_name,
             organism_metadata=organism_payload.get("metadata"),
             created_at=now
         )

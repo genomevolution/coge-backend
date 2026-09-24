@@ -9,18 +9,22 @@ from model.exceptions.entity_not_found import EntityNotFoundException
 from model.exceptions.invalid_file_type import InvalidFileTypeException
 from repository.data_import import DataImportRepository
 from repository.organism import OrganismRepository
+from repository.taxonomy import TaxonomyRepository
 from service.annotation_uploader_service import ANNOTATION_ALLOWED_EXTENSIONS
 from service.genome_uploader_service import GENOME_ALLOWED_EXTENSIONS
 from service.import_status import ImportComponent, ImportMode, ImportStatus
 from service.minio_service import MinIOService
 from service.nextflow_executor_service import NextflowExecutorService
-from service.request_validation import validate_required_fields
+from service.request_validation import normalize_tax_id, validate_required_fields
 
 
 ORGANISM_REQUIRED_FIELDS = ("name", "taxId", "speciesName")
 GENOME_REQUIRED_FIELDS = ("name", "description", "accessionId", "sourceId")
 ANNOTATION_REQUIRED_FIELDS = ("name", "description")
 IMPORT_STAGING_PREFIX = "staging/imports/{import_id}/"
+EXISTING_ORGANISM_REQUIRES_GENOME_MESSAGE = (
+    "This organism already exists. Please search for it and add the genome to the existing organism."
+)
 
 
 class DataImportService:
@@ -28,11 +32,13 @@ class DataImportService:
         self,
         repository: DataImportRepository,
         organism_repository: OrganismRepository,
+        taxonomy_repository: TaxonomyRepository,
         minio_service: MinIOService,
         nextflow_executor: NextflowExecutorService
     ):
         self.repository = repository
         self.organism_repository = organism_repository
+        self.taxonomy_repository = taxonomy_repository
         self.minio_service = minio_service
         self.nextflow_executor = nextflow_executor
 
@@ -243,17 +249,30 @@ class DataImportService:
         except (TypeError, json.JSONDecodeError) as error:
             raise ValueError("Payload must be valid JSON") from error
 
-        mode = payload.get("mode")
-        if mode not in (ImportMode.CREATE_ORGANISM.value, ImportMode.ADD_GENOME.value):
+        requested_mode = payload.get("mode")
+        if requested_mode not in (
+            ImportMode.CREATE_ORGANISM.value,
+            ImportMode.ADD_GENOME.value
+        ):
             raise ValueError("Unsupported import mode")
-        if mode == ImportMode.CREATE_ORGANISM.value:
+        if requested_mode == ImportMode.CREATE_ORGANISM.value:
             validate_required_fields(payload.get("organism"), ORGANISM_REQUIRED_FIELDS)
             organism = payload["organism"]
-            if self.organism_repository.find_organism_by_identity(
-                organism["name"], organism["taxId"], organism["speciesName"]
-            ) is not None:
-                raise ValueError("An organism with the same identity already exists")
-        else:
+            organism["name"] = organism["name"].strip()
+            organism["taxId"] = normalize_tax_id(organism["taxId"])
+            organism["speciesName"] = organism["speciesName"].strip()
+            taxonomy = self.taxonomy_repository.find_by_tax_id(organism["taxId"])
+            if taxonomy is not None:
+                organism["speciesName"] = taxonomy.scientific_name
+            existing_organism = self.organism_repository.find_organism_by_name_and_tax_id(
+                organism["name"],
+                organism["taxId"]
+            )
+            if existing_organism is not None:
+                raise ValueError(EXISTING_ORGANISM_REQUIRES_GENOME_MESSAGE)
+
+        mode = payload["mode"]
+        if mode == ImportMode.ADD_GENOME.value:
             target_id = payload.get("targetOrganismId")
             if not target_id:
                 raise ValueError("targetOrganismId is required")

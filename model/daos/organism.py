@@ -10,7 +10,7 @@ class Organism(Base, Paginable):
 
     id = Column(String(36), primary_key=True)
     name = Column(String(256), nullable=False)
-    tax_id = Column(String(36), nullable=False)
+    tax_id = Column(String(36), ForeignKey("core.taxonomy.tax_id"), nullable=False)
     organism_metadata = Column('metadata', JSONB)
     created_at = Column(TIMESTAMP(timezone=True))
     species_name = Column(String(256))

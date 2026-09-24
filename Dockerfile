@@ -17,6 +17,7 @@ RUN apt-get update \
         openjdk-21-jre-headless \
         procps \
         genometools \
+        ncbi-blast+ \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://get.nextflow.io | bash \
@@ -36,6 +37,9 @@ RUN pip install --no-cache-dir \
     httpx==0.25.2
 
 COPY . .
+
+RUN mkdir -p /data/blast_databases /data/blast_jobs \
+    && chmod 777 /data/blast_databases /data/blast_jobs
 
 EXPOSE 8000
 

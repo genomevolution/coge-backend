@@ -17,10 +17,15 @@ services:
       MINIO_SECRET_KEY: minioadmin123
       MINIO_BUCKET_NAME: genomes
       PROCESSING_TEMP_DIR: /tmp/genome_processing
+      BLAST_DATABASE_DIR: /data/blast_databases
+      BLAST_JOBS_DIR: /data/blast_jobs
+      BLAST_RESULT_RETENTION_HOURS: 48
     volumes:
       - nextflow_work:/data/nextflow_work
       - nextflow_output:/data/nextflow_output
       - genome_processing:/tmp/genome_processing
+      - blast_databases:/data/blast_databases
+      - blast_jobs:/data/blast_jobs
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
@@ -46,10 +51,15 @@ services:
       MINIO_SECRET_KEY: minioadmin123
       MINIO_BUCKET_NAME: genomes
       PROCESSING_TEMP_DIR: /tmp/genome_processing
+      BLAST_DATABASE_DIR: /data/blast_databases
+      BLAST_JOBS_DIR: /data/blast_jobs
+      BLAST_RESULT_RETENTION_HOURS: 48
     volumes:
       - nextflow_work:/data/nextflow_work
       - nextflow_output:/data/nextflow_output
       - genome_processing:/tmp/genome_processing
+      - blast_databases:/data/blast_databases
+      - blast_jobs:/data/blast_jobs
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
@@ -100,3 +110,5 @@ volumes:
   nextflow_work:
   nextflow_output:
   genome_processing:
+  blast_databases:
+  blast_jobs:

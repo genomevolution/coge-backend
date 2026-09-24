@@ -1,7 +1,8 @@
 from repository.organism import OrganismRepository
+from repository.taxonomy import TaxonomyRepository
 from model.dto.paginated_response import PaginatedResponse
 from model.exceptions.duplicate_entity import DuplicateEntityException
-from service.request_validation import validate_required_fields
+from service.request_validation import normalize_tax_id, validate_required_fields
 
 
 ORGANISM_NAME_FIELD = "name"
@@ -15,13 +16,18 @@ ORGANISM_REQUIRED_FIELDS = (
 )
 ORGANISM_SERIALIZATION_OPTIONS = {"include_genomes": True}
 DUPLICATE_ORGANISM_MESSAGE = (
-  "An organism with the same name, taxonomy ID, and species already exists"
+  "An organism with the same name and taxonomy ID already exists"
 )
 
 
 class OrganismService:
-  def __init__(self, organismRepository: OrganismRepository):
+  def __init__(
+    self,
+    organismRepository: OrganismRepository,
+    taxonomyRepository: TaxonomyRepository
+  ):
     self.organismRepository = organismRepository
+    self.taxonomyRepository = taxonomyRepository
 
   def get_organisms(self, prev: str, next: str):
     organisms = self.organismRepository.get_organisms(prev, next)
@@ -43,9 +49,16 @@ class OrganismService:
     self._validate_create_payload(data)
 
     name = data[ORGANISM_NAME_FIELD].strip()
-    tax_id = data[ORGANISM_TAXONOMY_ID_FIELD].strip()
-    species_name = data[ORGANISM_SPECIES_NAME_FIELD].strip()
-    self._validate_unique_identity(name, tax_id, species_name)
+    tax_id = normalize_tax_id(data[ORGANISM_TAXONOMY_ID_FIELD])
+    taxonomy = self.taxonomyRepository.find_by_tax_id(tax_id)
+    species_name = (
+      taxonomy.scientific_name
+      if taxonomy is not None
+      else data[ORGANISM_SPECIES_NAME_FIELD].strip()
+    )
+    self._validate_unique_identity(name, tax_id)
+    if taxonomy is None:
+      self.taxonomyRepository.create(tax_id, species_name)
 
     organism = self.organismRepository.create_organism(
       name=name,
@@ -59,11 +72,10 @@ class OrganismService:
   def _validate_create_payload(self, data: dict):
     validate_required_fields(data, ORGANISM_REQUIRED_FIELDS)
 
-  def _validate_unique_identity(self, name: str, tax_id: str, species_name: str):
-    existing_organism = self.organismRepository.find_organism_by_identity(
-      name=name,
-      tax_id=tax_id,
-      species_name=species_name
+  def _validate_unique_identity(self, name: str, tax_id: str):
+    existing_organism = self.organismRepository.find_organism_by_name_and_tax_id(
+      name,
+      tax_id
     )
 
     if existing_organism is not None:

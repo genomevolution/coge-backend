@@ -19,6 +19,12 @@ class Config:
     
     NEXTFLOW_WORK_DIR: str
     NEXTFLOW_OUTPUT_DIR: str
+    BLAST_DATABASE_DIR: str
+    BLAST_JOBS_DIR: str
+    BLAST_RESULT_RETENTION_HOURS: int
+    BLAST_MAX_QUERY_LENGTH: int
+    BLAST_MAX_TARGET_GENOMES: int
+    BLAST_MAX_CONCURRENT_JOBS: int
     
     def __init__(self):
         """Initialize configuration from environment variables"""
@@ -49,6 +55,20 @@ class Config:
         """Load Nextflow configuration from environment variables"""
         self.NEXTFLOW_WORK_DIR = self._get_env_with_default("NEXTFLOW_WORK_DIR", "/data/nextflow_work")
         self.NEXTFLOW_OUTPUT_DIR = self._get_env_with_default("NEXTFLOW_OUTPUT_DIR", "/data/nextflow_output")
+        self.BLAST_DATABASE_DIR = self._get_env_with_default("BLAST_DATABASE_DIR", "/data/blast_databases")
+        self.BLAST_JOBS_DIR = self._get_env_with_default("BLAST_JOBS_DIR", "/data/blast_jobs")
+        self.BLAST_RESULT_RETENTION_HOURS = self._get_env_with_default_int(
+            "BLAST_RESULT_RETENTION_HOURS", 48
+        )
+        self.BLAST_MAX_QUERY_LENGTH = self._get_env_with_default_int(
+            "BLAST_MAX_QUERY_LENGTH", 100_000
+        )
+        self.BLAST_MAX_TARGET_GENOMES = self._get_env_with_default_int(
+            "BLAST_MAX_TARGET_GENOMES", 10_000
+        )
+        self.BLAST_MAX_CONCURRENT_JOBS = self._get_env_with_default_int(
+            "BLAST_MAX_CONCURRENT_JOBS", 2
+        )
     
     def _get_required_env(self, key: str) -> str:
         value = os.environ.get(key)
@@ -65,6 +85,15 @@ class Config:
     
     def _get_env_with_default(self, key: str, default: str) -> str:
         return os.environ.get(key, default)
+
+    def _get_env_with_default_int(self, key: str, default: int) -> int:
+        value = os.environ.get(key)
+        if value is None:
+            return default
+        try:
+            return int(value)
+        except ValueError:
+            raise Exception(f"Environment variable {key} must be a valid integer, got: {value}")
     
     def get_database_url(self) -> str:
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
