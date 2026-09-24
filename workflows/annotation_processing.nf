@@ -12,17 +12,6 @@ params.genome_id = ""
 params.annotation_id = ""
 params.output_dir = "results"
 
-log.info """\
-    ANNOTATION PROCESSING PIPELINE
-    ==============================
-    GFF3 file      : ${params.gff3_file}
-    Organism ID    : ${params.organism_id}
-    Genome ID      : ${params.genome_id}
-    Annotation ID  : ${params.annotation_id}
-    Output dir     : ${params.output_dir}
-    """
-    .stripIndent()
-
 process SORT_GFF3 {
     tag "${annotation_id}"
     
@@ -101,32 +90,11 @@ workflow {
     }
     
     // Create channels
-    gff3_ch = Channel.fromPath(params.gff3_file, checkIfExists: true)
-    annotation_id_ch = Channel.value(params.annotation_id)
+    gff3_ch = channel.fromPath(params.gff3_file, checkIfExists: true)
+    annotation_id_ch = channel.value(params.annotation_id)
     
     // Execute pipeline
     SORT_GFF3(gff3_ch, annotation_id_ch)
     COMPRESS_GFF3(SORT_GFF3.out.sorted_gff3, annotation_id_ch)
     INDEX_GFF3(COMPRESS_GFF3.out.compressed_gff3, annotation_id_ch)
-    
-    // Emit completion signal
-    SORT_GFF3.out.sorted_gff3
-        .concat(COMPRESS_GFF3.out.compressed_gff3)
-        .concat(INDEX_GFF3.out.tabix_index)
-        .collect()
-        .view { files -> 
-            log.info "Pipeline completed successfully!"
-            log.info "Generated files: ${files.join(', ')}"
-        }
 }
-
-workflow.onComplete {
-    log.info "Pipeline execution completed at: ${workflow.complete}"
-    log.info "Execution status: ${workflow.success ? 'SUCCESS' : 'FAILED'}"
-    log.info "Duration: ${workflow.duration}"
-}
-
-workflow.onError {
-    log.error "Pipeline execution failed: ${workflow.errorMessage}"
-}
-

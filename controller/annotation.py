@@ -49,6 +49,16 @@ class AnnotationController:
       raise HTTPException(status_code=500, detail=f"Failed to generate file URL: {str(e)}")
     except Exception as e:
       raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+  def create_annotation(self, genome_id: str, data: dict):
+    try:
+      return self.annotation_service.create_annotation(genome_id, data)
+    except ValueError as e:
+      raise HTTPException(status_code=400, detail=str(e))
+    except EntityNotFoundException as e:
+      raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
   
   def get_processing_execution_status(self, execution_id: str):
     try:

@@ -21,6 +21,7 @@ class FileNames(str, Enum):
     DAG = 'dag.html'
     GENOME_INDEXING_WORKFLOW = 'genome_indexing.nf'
     ANNOTATION_PROCESSING_WORKFLOW = 'annotation_processing.nf'
+    IMPORT_VALIDATION_WORKFLOW = 'import_validation.nf'
     NEXTFLOW_CONFIG = 'nextflow.config'
     FASTA_GZ_EXTENSION = '.fa.gz'
     GZI_EXTENSION = '.fa.gz.gzi'
@@ -28,4 +29,3 @@ class FileNames(str, Enum):
     SORTED_GFF3_EXTENSION = '.sorted.gff3'
     GFF3_GZ_EXTENSION = '.sorted.gff3.gz'
     TABIX_EXTENSION = '.sorted.gff3.gz.tbi'
-

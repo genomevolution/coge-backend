@@ -14,8 +14,13 @@ Migrate
 migrate-up
 ```
 
-Run migrations
+Create an asynchronous import
 
+```bash
+curl --request POST 'http://127.0.0.1:8000/imports/' \
+  --form 'payload={"mode":"CREATE_ORGANISM","organism":{"name":"sample","taxId":"1","speciesName":"Example species"},"genome":{"name":"v1","description":"Assembly","accessionId":"GCA_1","sourceId":"SOURCE_ID","public":true}}' \
+  --form 'fasta=@"genome.fa"'
+```
 
-
-curl --location --request POST 'http://127.0.0.1:8000/organisms/4ba32111-dced-4cf0-9837-3d85dd8321fc/genomes/6e638b6b-6023-4bde-a76d-08350dd09955/upload' --form 'file=@"LL0772_assignedKin.fa"'
+The request returns `202 Accepted`. Poll `GET /imports/{importId}` until the
+status is `PUBLISHED` or `ACTION_REQUIRED`.
